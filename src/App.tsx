@@ -13,9 +13,9 @@ type Meeting = { id: string; title: string; startsAt: string; endsAt: string; lo
 type Note = { id: string; title: string; content: string; pinned: boolean; updatedAt: string }
 type Store = { tasks: Task[]; events: EventItem[]; meetings: Meeting[]; notes: Note[]; displayName: string; theme: 'light' | 'dark' }
 const STORE_KEY = 'executive-hub-v2'
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const localDateTime = (date: string, time: string) => date && time ? new Date(date + 'T' + time).toISOString() : ''
-const dateInput = (value: string) => value ? new Date(value).toISOString().slice(0, 10) : ''
+const dateInput = (value: string) => { if (!value) return ''; const d = new Date(value); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const timeInput = (value: string) => value ? new Date(value).toTimeString().slice(0, 5) : ''
 const uid = () => crypto.randomUUID()
 const seed: Store = {
