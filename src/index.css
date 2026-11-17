@@ -499,3 +499,41 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   }
   body:has(.modal-backdrop) .mobile-nav{display:none!important}
 }
+
+
+/* Final iPhone polish: constrain native date/time controls and give the dialog breathing room */
+@media(max-width:760px){
+  .task-modal{
+    max-height:min(84dvh,740px)!important;
+    height:auto!important;
+    align-self:center!important;
+  }
+  .task-modal .field input[type="date"],
+  .task-modal .field input[type="time"]{
+    -webkit-appearance:none!important;
+    appearance:none!important;
+    display:block!important;
+    flex:0 1 auto!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    inline-size:100%!important;
+    box-sizing:border-box!important;
+    border:1px solid var(--line)!important;
+    border-radius:11px!important;
+    overflow:hidden!important;
+    text-align:center!important;
+    padding-inline:10px!important;
+    background-clip:padding-box!important;
+  }
+  .task-modal .field input[type="date"]::-webkit-date-and-time-value,
+  .task-modal .field input[type="time"]::-webkit-date-and-time-value{
+    text-align:center;
+    min-height:1.4em;
+    margin:0;
+  }
+  .task-modal .field input[type="date"]::-webkit-calendar-picker-indicator{
+    margin:0 2px 0 6px;
+    opacity:.65;
+  }
+}
