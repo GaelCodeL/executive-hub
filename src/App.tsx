@@ -78,6 +78,22 @@ function App() {
   useEffect(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)) } catch { setToast('No se ha podido guardar en este dispositivo') } }, [store])
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer) } }, [toast])
   useEffect(() => { document.documentElement.style.colorScheme = store.theme }, [store.theme])
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen(open => !open)
+      }
+      if (event.key === 'Escape') {
+        setSearchOpen(false)
+        setTaskForm(false)
+        setEventForm(false)
+        setMeetingForm(false)
+      }
+    }
+    window.addEventListener('keydown', handleShortcut)
+    return () => window.removeEventListener('keydown', handleShortcut)
+  }, [])
 
   const save = (next: Store) => setStore(next)
   const tasks = store.tasks
