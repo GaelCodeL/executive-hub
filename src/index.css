@@ -357,3 +357,13 @@ button,input,select,textarea{-webkit-tap-highlight-color:transparent}
   .task-modal{max-width:calc(100vw - 28px)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+@media(max-width:760px){
+ .task-check.in-progress,.check-circle.in-progress{background:#eef3ff;border:1.5px solid #6f8fc8;color:#416bb4}
+ .task-check.checked,.check-circle.done{background:#6b9b81;border-color:#6b9b81;color:white}
+ .check-circle{display:grid;place-items:center}
+ .task-check,.check-circle{transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+ .task-check:active,.check-circle:active{transform:scale(.92)}
+}
+.task-modal[role=dialog]{outline:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #7194d0;outline-offset:2px}
