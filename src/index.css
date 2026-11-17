@@ -164,3 +164,48 @@ button,input,select,textarea{-webkit-tap-highlight-color:transparent}
  .modal-actions button{min-height:42px;font-size:12px}
 }
 @keyframes dialog-in{from{transform:translateY(8px) scale(.985);opacity:.5}to{transform:translateY(0) scale(1);opacity:1}}
+
+
+/* Dashboard mobile spacing and prominent agenda shortcut */
+@media(max-width:760px){
+  .stats-grid{gap:12px;margin-bottom:14px}
+  .stat-card{padding:17px 16px 16px;min-height:126px;border-radius:13px}
+  .stat-top{font-size:8px;letter-spacing:.45px;gap:8px}
+  .stat-value{margin:10px 0 8px}
+  .dashboard-grid,.bottom-grid{gap:14px;margin-bottom:14px}
+  .panel{padding:19px 18px}
+  .agenda-panel .panel-heading{gap:12px;align-items:center;padding-bottom:10px}
+  .agenda-panel .panel-heading h2{font-size:16px}
+  .agenda-panel .panel-heading .text-button{
+    min-height:42px;
+    padding:0 13px;
+    border:1px solid #dce5f3;
+    border-radius:9px;
+    background:#f5f8fd;
+    color:#315fbd;
+    font-size:12px;
+    font-weight:700;
+    gap:8px;
+    white-space:nowrap;
+  }
+  .agenda-panel .panel-heading .text-button svg{width:17px;height:17px}
+  .timeline-row{min-height:57px;grid-template-columns:43px 11px minmax(0,1fr) 20px;gap:9px}
+  .event-content strong{font-size:11px}
+  .event-content span{font-size:9px}
+  .date-button{
+    width:58px;
+    height:58px;
+    min-width:58px;
+    border-radius:13px;
+    justify-content:center;
+    gap:0;
+    padding:0;
+    background:var(--surface);
+    border:1px solid var(--line);
+    box-shadow:0 4px 13px rgba(26,43,69,.07);
+    color:var(--blue);
+    flex-shrink:0;
+  }
+  .date-button svg:first-child{width:21px;height:21px}
+  .date-button svg:last-child{display:none}
+}
