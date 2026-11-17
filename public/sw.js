@@ -1,5 +1,6 @@
-const CACHE_NAME = 'executive-hub-shell-v1'
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg']
+const CACHE_NAME = 'executive-hub-shell-v2'
+const BASE_PATH = new URL(self.registration.scope).pathname
+const APP_SHELL = ['', 'index.html', 'manifest.webmanifest', 'icon.svg'].map((path) => new URL(path, self.registration.scope).toString())
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))
@@ -17,9 +18,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return
   event.respondWith(
     fetch(event.request).then((response) => {
-      const copy = response.clone()
-      caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
+      if (response.ok) {
+        const copy = response.clone()
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
+      }
       return response
-    }).catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
+    }).catch(() => caches.match(event.request).then((cached) => cached || caches.match(new URL('index.html', self.registration.scope).toString())))
   )
 })
