@@ -574,3 +574,64 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     overflow:visible!important;
   }
 }
+
+
+/* iPhone keyboard mode: the form must remain usable when the software keyboard opens */
+@media(max-width:760px){
+  body:has(.task-modal input:focus),
+  body:has(.task-modal textarea:focus),
+  body:has(.task-modal select:focus){
+    overflow:hidden!important;
+  }
+  body:has(.task-modal input:focus) .modal-backdrop,
+  body:has(.task-modal textarea:focus) .modal-backdrop,
+  body:has(.task-modal select:focus){
+    align-items:flex-start!important;
+  }
+  body:has(.task-modal input:focus) .modal-backdrop,
+  body:has(.task-modal textarea:focus) .modal-backdrop,
+  body:has(.task-modal select:focus) .modal-backdrop{
+    padding:8px 12px!important;
+  }
+  body:has(.task-modal input:focus) .task-modal,
+  body:has(.task-modal textarea:focus) .task-modal,
+  body:has(.task-modal select:focus) .task-modal{
+    height:calc(100dvh - 16px)!important;
+    max-height:calc(100dvh - 16px)!important;
+    width:100%!important;
+    max-width:520px!important;
+    margin:0 auto!important;
+    padding:14px 16px 0!important;
+    border-radius:18px!important;
+  }
+  body:has(.task-modal input:focus) .modal-head,
+  body:has(.task-modal textarea:focus) .modal-head,
+  body:has(.task-modal select:focus) .modal-head{
+    margin-bottom:8px!important;
+    padding-bottom:8px!important;
+  }
+  body:has(.task-modal input:focus) .modal-head h2,
+  body:has(.task-modal textarea:focus) .modal-head h2,
+  body:has(.task-modal select:focus) .modal-head h2{
+    font-size:16px!important;
+  }
+  body:has(.task-modal input:focus) .task-modal>.form-grid,
+  body:has(.task-modal textarea:focus) .task-modal>.form-grid,
+  body:has(.task-modal select:focus) .task-modal>.form-grid{
+    flex:1 1 0!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding-bottom:24px!important;
+  }
+  body:has(.task-modal input:focus) .modal-actions,
+  body:has(.task-modal textarea:focus) .modal-actions,
+  body:has(.task-modal select:focus) .modal-actions{
+    display:none!important;
+  }
+  .task-modal .field input,
+  .task-modal .field textarea,
+  .task-modal .field select{
+    scroll-margin-block:18px!important;
+  }
+}
