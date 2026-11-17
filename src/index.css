@@ -537,3 +537,40 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     opacity:.65;
   }
 }
+
+
+/* Modal footer: keep both actions fully visible inside the rounded card on iPhone */
+@media(max-width:760px){
+  .task-modal{
+    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 44px)!important;
+    padding:18px 18px 0!important;
+    overflow:hidden!important;
+    border-radius:20px!important;
+  }
+  .task-modal>.form-grid{
+    flex:1 1 0!important;
+    min-height:0!important;
+    padding-bottom:14px!important;
+  }
+  .modal-actions{
+    flex:0 0 auto!important;
+    position:relative!important;
+    bottom:auto!important;
+    margin:0 -18px!important;
+    padding:12px 18px 16px!important;
+    min-height:0!important;
+    align-items:stretch!important;
+    border-radius:0 0 20px 20px!important;
+    box-sizing:border-box!important;
+    overflow:visible!important;
+  }
+  .modal-actions button{
+    align-self:stretch!important;
+    height:auto!important;
+    min-height:48px!important;
+    max-height:none!important;
+    padding:10px 8px!important;
+    line-height:1.2!important;
+    overflow:visible!important;
+  }
+}
