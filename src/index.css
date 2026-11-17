@@ -209,3 +209,151 @@ button,input,select,textarea{-webkit-tap-highlight-color:transparent}
   .date-button svg:first-child{width:21px;height:21px}
   .date-button svg:last-child{display:none}
 }
+
+/* EXECUTIVE HUB — iPhone 12 quality pass */
+.mobile-menu-scrim{display:none}
+@media(max-width:760px){
+  html{scroll-behavior:smooth}
+  body{min-width:320px;overflow-x:hidden}
+  .app-shell{min-height:100svh;padding-bottom:calc(72px + env(safe-area-inset-bottom));overflow-x:hidden}
+  .main-area{min-width:0;width:100%}
+  .topbar{height:60px;padding:0 16px;position:sticky;top:0;z-index:12;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .mobile-brand{gap:10px}
+  .mobile-brand .icon-button,.top-actions .icon-button{width:40px;height:40px}
+  .mobile-brand strong{font-size:12px;letter-spacing:1.05px}
+  .top-actions{gap:8px}
+  .content{width:100%;max-width:560px;margin:0 auto;padding:25px 16px 22px}
+  .welcome-row{align-items:center;gap:12px;margin-bottom:19px}
+  .welcome-row>div{min-width:0}
+  .welcome-row .eyebrow{font-size:9px;line-height:1.5;letter-spacing:1.15px}
+  .welcome-row h1{font-size:clamp(22px,6vw,27px);line-height:1.13;letter-spacing:-1.15px;margin:9px 0 7px}
+  .wave{font-size:.82em}
+  .welcome-sub{font-size:12px;line-height:1.55;max-width:290px}
+  .date-button{width:auto;height:46px;min-width:76px;padding:0 12px;display:flex;gap:7px;border-radius:12px;font:700 11px 'DM Sans';box-shadow:0 3px 12px rgba(26,43,69,.055)}
+  .date-button svg:first-child{width:17px;height:17px}
+  .date-button svg:last-child{display:block;width:13px;height:13px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 12px}
+  .stat-card{min-width:0;min-height:125px;padding:14px 13px 13px;border-radius:13px;box-shadow:0 2px 9px rgba(25,43,67,.025)}
+  .stat-top{align-items:center;font-size:8px;line-height:1.35;letter-spacing:.55px}
+  .stat-top>span:first-child{max-width:calc(100% - 34px)}
+  .stat-icon{width:30px;height:30px;flex:0 0 30px}
+  .stat-value{font-size:27px;line-height:1;margin:12px 0 9px;letter-spacing:-1px}
+  .stat-value small{font-size:10px;letter-spacing:0}
+  .stat-foot{align-items:flex-start;gap:5px;font-size:8px;line-height:1.4}
+  .stat-foot>span{min-width:0}
+  .stat-foot svg{width:12px;height:12px;flex-shrink:0}
+  .progress-track{margin:1px 0 8px;height:5px}
+  .dashboard-grid,.bottom-grid{grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:12px}
+  .panel{padding:17px 16px;border-radius:14px;box-shadow:0 2px 10px rgba(25,43,67,.025)}
+  .panel-heading{gap:10px;align-items:center}
+  .panel-heading h2,.assistant-heading h2{font-size:15px;line-height:1.25}
+  .panel-heading .eyebrow{font-size:8px;letter-spacing:1.1px}
+  .agenda-panel .panel-heading{padding-bottom:12px}
+  .agenda-panel .panel-heading .text-button{min-height:42px;padding:0 12px;font-size:11px;border-radius:10px;gap:7px;flex-shrink:0}
+  .agenda-panel .panel-heading .text-button svg{width:16px;height:16px}
+  .timeline-row{min-height:62px;grid-template-columns:42px 10px minmax(0,1fr) 28px;gap:8px}
+  .time{font-size:10px}
+  .event-content{min-width:0}
+  .event-content strong{font-size:11px;line-height:1.35;white-space:normal}
+  .event-content span{font-size:9px;line-height:1.4;white-space:normal}
+  .more-button{width:32px;height:36px;display:grid;place-items:center}
+  .priority-intro{margin:13px 0 8px;padding:12px;border-radius:10px}
+  .priority-item{gap:10px;padding:12px 2px}
+  .priority-item>div{min-width:0}
+  .priority-item strong{font-size:11px;line-height:1.4;white-space:normal}
+  .priority-item span:not(.priority-tag){font-size:9px}
+  .check-circle{width:20px;height:20px;flex:0 0 20px}
+  .add-priority{min-height:42px;font-size:11px}
+  .task-row{min-height:55px;gap:9px}
+  .task-check{width:20px;height:20px}
+  .task-info{min-width:0}
+  .task-info strong{font-size:10px;line-height:1.4;white-space:normal}
+  .task-info span{font-size:9px;line-height:1.4}
+  .task-due{font-size:8px}
+  .assistant-panel>p{font-size:11px;line-height:1.65}
+  .insight{font-size:10px;padding:11px;border-radius:9px}
+  .assistant-cta{min-height:42px;font-size:11px}
+  .footer{flex-direction:column;gap:6px;font-size:8px;line-height:1.5}
+  .mobile-nav{height:calc(66px + env(safe-area-inset-bottom));padding:5px 7px calc(5px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;z-index:30;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -5px 22px rgba(24,40,62,.045)}
+  .mobile-nav button{min-width:0;min-height:48px;width:100%;gap:4px;border-radius:10px;font-size:9px;font-weight:600}
+  .mobile-nav button svg{width:21px;height:21px}
+  .mobile-nav button.mobile-active{background:#eef3fc;color:#315fbd}
+  .dark .mobile-nav button.mobile-active{background:#263b5c;color:#b4cbf5}
+  .sidebar.mobile-open{left:0;z-index:42}
+  .mobile-menu-scrim{display:block;position:fixed;inset:60px 0 0;border:0;background:rgba(15,25,40,.38);z-index:40;backdrop-filter:blur(2px)}
+  .sidebar{z-index:41;top:60px;bottom:0;min-height:0;padding:22px 17px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
+  .search-panel{top:60px;left:12px;right:12px;width:auto;z-index:45;border-radius:13px;padding:13px;box-shadow:0 15px 38px rgba(16,30,50,.16)}
+  .search-panel input{font-size:16px;min-height:38px}
+  .search-results button{min-height:44px}
+  .module-page{padding-top:3px}
+  .module-title{align-items:center;gap:10px;margin-bottom:18px}
+  .module-title h1{font-size:25px;line-height:1.15;letter-spacing:-.9px}
+  .module-title p{font-size:11px;line-height:1.5}
+  .module-title>.primary-button{height:44px;min-width:44px;padding:0 12px;border-radius:11px;font-size:11px;white-space:nowrap}
+  .module-title>.primary-button svg{width:16px;height:16px}
+  .module-toolbar{gap:9px}
+  .filter-tabs{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .filter-tabs::-webkit-scrollbar{display:none}
+  .filter-tabs button{padding:9px 11px;white-space:nowrap;font-size:10px}
+  .data-panel{padding:4px 13px;border-radius:13px}
+  .data-row{gap:8px;padding:14px 0;min-width:0}
+  .data-main{min-width:0}
+  .data-main>strong{font-size:11px;line-height:1.4;white-space:normal}
+  .data-main>span,.data-main p{font-size:9px;line-height:1.5;white-space:normal}
+  .data-row>.icon-button{width:34px;height:38px;flex:0 0 34px}
+  .priority-tag{font-size:8px;padding:4px 6px}
+  .agenda-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+  .agenda-view-switch{display:grid;grid-template-columns:repeat(3,1fr);background:var(--soft);padding:4px;border-radius:10px}
+  .agenda-view-switch button{min-height:38px;border:0;border-radius:7px;background:transparent;color:var(--muted);font:600 11px 'DM Sans'}
+  .agenda-view-switch button.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 4px rgba(20,36,59,.1)}
+  .agenda-navigation{display:flex;gap:7px;align-items:center}
+  .agenda-navigation button{min-width:42px;min-height:40px;justify-content:center}
+  .agenda-navigation input{flex:1;min-width:0;height:40px;font-size:12px}
+  .week-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;padding:10px 7px;margin-bottom:13px}
+  .week-calendar button{min-width:0;min-height:58px;border:0;border-radius:9px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted)}
+  .week-calendar button span{font-size:9px}
+  .week-calendar button strong{font-size:13px;color:var(--text)}
+  .week-calendar button.selected{background:#315fbd;color:#fff}
+  .week-calendar button.selected strong{color:#fff}
+  .month-calendar{padding:12px 9px}
+  .month-grid{gap:3px}
+  .month-day{min-width:0;min-height:39px}
+  .agenda-selected-heading{gap:8px;align-items:flex-end}
+  .agenda-selected-heading h2{font-size:16px;line-height:1.3}
+  .meeting-grid,.notes-layout,.assistant-feature-grid{grid-template-columns:minmax(0,1fr);gap:11px}
+  .meeting-card{padding:16px}
+  .meeting-card h3{font-size:14px}
+  .meeting-summary{font-size:11px;line-height:1.65}
+  .note-editor{position:static}
+  .note-editor textarea{min-height:140px;font-size:14px}
+  .settings-panel{padding:4px 14px}
+  .setting-row{padding:15px 0;gap:10px}
+  .setting-row>div strong{font-size:11px}
+  .setting-row>div span{font-size:9px;line-height:1.5}
+  .setting-row input,.setting-row select{width:100%;min-height:42px;font-size:14px}
+  .settings-actions{gap:8px}
+  .settings-actions button,.settings-actions .import-backup{min-height:44px;justify-content:center}
+  .modal-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px 16px calc(18px + env(safe-area-inset-bottom));overflow:hidden}
+  .task-modal{width:100%;max-width:358px;max-height:min(78dvh,660px);padding:18px 17px 12px;border-radius:18px;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{flex:0 0 auto;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}
+  .modal-head h2{font-size:18px}
+  .task-modal>.form-grid{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:1px 2px 5px;-webkit-overflow-scrolling:touch}
+  .task-modal .field{margin-bottom:9px;gap:5px}
+  .task-modal .field>span{font-size:10px}
+  .task-modal .field input,.task-modal .field select,.task-modal .field textarea{min-height:40px;height:auto;padding:9px 10px;font-size:16px;border-radius:9px}
+  .task-modal .field textarea{min-height:72px}
+  .modal-actions{position:static;flex:0 0 auto;display:grid;grid-template-columns:.85fr 1.15fr;gap:8px;margin:10px -17px -12px;padding:11px 17px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -5px 14px rgba(20,36,58,.04)}
+  .modal-actions button{min-height:44px;padding:0 9px;justify-content:center;font-size:11px;border-radius:10px;white-space:nowrap}
+  .toast-message{bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px);width:max-content;text-align:center;line-height:1.4}
+  body:has(.modal-backdrop){overflow:hidden;position:fixed;width:100%}
+  body:has(.modal-backdrop) .mobile-nav{display:none}
+}
+@media(max-width:370px){
+  .content{padding-left:12px;padding-right:12px}
+  .stat-card{padding:12px 10px}
+  .stat-top{font-size:7px}
+  .panel{padding:15px 13px}
+  .date-button{min-width:68px;padding:0 9px}
+  .task-modal{max-width:calc(100vw - 28px)}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
