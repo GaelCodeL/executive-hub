@@ -1,15 +1,20 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "EXECUTIVE HUB",
   "short_name": "Executive Hub",
   "description": "Your day. Under control. Personal Executive Workspace.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#f7f8fa",
   "theme_color": "#f7f8fa",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
