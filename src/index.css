@@ -126,3 +126,25 @@ button,input,select,textarea{-webkit-tap-highlight-color:transparent}
 }
 @keyframes sheet-in{from{transform:translateY(28px);opacity:.7}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* Mobile form refinement: compact controls and non-overlapping header */
+.meeting-summary>strong,.meeting-agreements>strong{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.meeting-summary>p,.meeting-agreements>p{margin:0;white-space:pre-wrap}
+.meeting-agreements{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+@media(max-width:760px){
+  .task-modal{max-height:88dvh;padding:16px 16px calc(10px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0}
+  .task-modal:before{margin:-7px auto 12px}
+  .modal-head{position:relative;top:auto;z-index:auto;padding:4px 0 10px;margin:0 0 12px}
+  .modal-head h2{font-size:18px;line-height:1.2}
+  .modal-head .eyebrow{font-size:9px}
+  .field{gap:5px;margin-bottom:10px}
+  .field>span{font-size:10px}
+  .field input,.field select,.field textarea,.task-modal input,.task-modal select,.task-modal textarea{min-height:42px;padding:9px 11px;border-radius:9px;font-size:16px;line-height:1.25}
+  .field textarea{min-height:82px}
+  .modal-actions{bottom:calc(-10px - env(safe-area-inset-bottom));margin:5px -16px calc(-10px - env(safe-area-inset-bottom));padding:10px 16px calc(10px + env(safe-area-inset-bottom));gap:8px}
+  .modal-actions button{min-height:44px;font-size:12px;border-radius:9px}
+  .meeting-card{padding:15px}
+  .meeting-card h3{margin:7px 0 10px}
+  .meeting-summary{font-size:11px;line-height:1.55}
+}
