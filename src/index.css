@@ -14,3 +14,43 @@
 
 .import-backup{position:relative;overflow:hidden;cursor:pointer}.import-backup input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 @media(max-width:760px){.import-backup{justify-content:center}}
+
+/* Executive presentation polish */
+:root{font-optical-sizing:auto;scroll-behavior:smooth}
+body{background:#f4f6fa}
+.app-shell{background:radial-gradient(ellipse at 72% -12%,#e9effa 0,transparent 34%),var(--bg)}
+.app-shell.dark{background:radial-gradient(ellipse at 78% -15%,#263958 0,transparent 34%),var(--bg)}
+.sidebar{box-shadow:8px 0 34px rgba(29,48,79,.025)}
+.brand-mark{background:linear-gradient(145deg,#294c83,#172c4f);box-shadow:0 5px 13px rgba(32,59,105,.2)}
+.topbar{position:sticky;top:0;z-index:8;backdrop-filter:blur(16px);background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.content{padding-top:40px}
+.welcome-row{padding:4px 0 3px}
+.welcome-row h1,.module-title h1{letter-spacing:-1.25px}
+.stat-card,.panel{box-shadow:0 3px 14px rgba(26,43,69,.025);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.stat-card:hover,.panel:hover{border-color:#dce4f0;box-shadow:0 10px 28px rgba(26,43,69,.055);transform:translateY(-2px)}
+.dark .stat-card:hover,.dark .panel:hover{border-color:#3a4b64;box-shadow:0 10px 28px rgba(0,0,0,.14)}
+.stat-value{font-variant-numeric:tabular-nums}
+.primary-button{background:linear-gradient(135deg,#3d6fc7,#294f91);box-shadow:0 4px 10px rgba(49,95,189,.16);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.primary-button:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 7px 16px rgba(49,95,189,.22)}
+.secondary-button,.date-button,.search-trigger{transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.secondary-button:hover,.date-button:hover,.search-trigger:hover{border-color:#cbd7e8;transform:translateY(-1px)}
+.nav-item{transition:background .18s ease,color .18s ease,transform .18s ease}
+.nav-item:hover{background:var(--soft);transform:translateX(2px)}
+.nav-item.selected{box-shadow:inset 3px 0 #4774c1}
+.timeline-row,.task-row,.data-row{transition:background .16s ease}
+.timeline-row:hover,.task-row:hover,.data-row:hover{background:color-mix(in srgb,var(--soft) 65%,transparent)}
+.priority-intro{background:linear-gradient(110deg,#f7f3eb,#f8f9fb)}
+.dark .priority-intro{background:linear-gradient(110deg,#332f2a,#202c3d)}
+.assistant-panel{position:relative;overflow:hidden}
+.assistant-panel:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-95px;top:-105px;background:radial-gradient(circle,#dfe8f8 0,transparent 70%);pointer-events:none}
+.dark .assistant-panel:after{background:radial-gradient(circle,#34496b 0,transparent 70%)}
+.module-title{padding-bottom:5px}
+.module-toolbar,.agenda-datebar{background:color-mix(in srgb,var(--surface) 72%,transparent);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.data-panel{overflow:hidden}
+.meeting-card,.note-card{transition:transform .18s ease,box-shadow .18s ease}
+.meeting-card:hover,.note-card:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(26,43,69,.06)}
+.field input:focus,.field select:focus,.field textarea:focus,.agenda-datebar input:focus,.setting-row input:focus,.setting-row select:focus{border-color:#8ca8d7;box-shadow:0 0 0 3px rgba(75,117,188,.1);outline:0}
+.toast-message{backdrop-filter:blur(12px);box-shadow:0 12px 32px rgba(15,30,54,.24)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #7194ce;outline-offset:2px}
+@media(min-width:761px){.content{padding-left:clamp(28px,3.2vw,54px);padding-right:clamp(28px,3.2vw,54px)}.sidebar{position:sticky;top:0;height:100vh}.welcome-row{margin-bottom:30px}.stats-grid{gap:16px}.dashboard-grid,.bottom-grid{gap:17px}.panel{border-radius:12px}.stat-card{border-radius:12px}}
+@media(max-width:760px){.app-shell{background:var(--bg)}.topbar{box-shadow:0 3px 12px rgba(26,43,69,.025)}.content{padding-top:24px}.stat-card:hover,.panel:hover{transform:none;box-shadow:0 3px 14px rgba(26,43,69,.025)}.mobile-nav{box-shadow:0 -5px 20px rgba(25,43,69,.045)}.module-toolbar,.agenda-datebar{padding:8px}.toast-message{bottom:calc(78px + env(safe-area-inset-bottom));max-width:calc(100vw - 28px);text-align:center}}
