@@ -91,3 +91,38 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 
 .due-overdue{display:inline-block!important;color:#bd6e62!important;font-size:9px!important;font-weight:700;margin-top:5px!important}
 @media(max-width:760px){.filter-tabs{flex-wrap:wrap}.filter-tabs button{padding:7px 9px;font-size:10px}}
+
+
+/* iPhone-first interaction layer: safe areas, sheets and touch ergonomics */
+html,body,#root{min-height:100%;width:100%;max-width:100%;overflow-x:clip}
+body{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+button,input,select,textarea{-webkit-tap-highlight-color:transparent}
+.modal-backdrop{z-index:60;overscroll-behavior:contain}
+.task-modal{max-height:min(88dvh,820px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.modal-actions{position:sticky;bottom:-22px;padding:14px 0 2px;background:var(--surface);z-index:2}
+@media(max-width:760px){
+  .app-shell{min-height:100dvh;width:100%;overflow-x:clip;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  .topbar{padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right))}
+  .content{width:100%;min-width:0;padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right));padding-bottom:24px}
+  .mobile-nav{height:calc(64px + env(safe-area-inset-bottom));padding:6px max(4px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-right));z-index:30}
+  .mobile-nav button{min-width:0;flex:1;min-height:48px;font-size:9px;gap:5px}
+  .mobile-nav button svg{width:21px;height:21px}
+  .modal-backdrop{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0;background:rgba(13,25,43,.48);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);overscroll-behavior:none}
+  .task-modal{width:100%;max-width:none;max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top) - 8px));height:auto;margin:0;border-radius:22px 22px 0 0;padding:20px 18px calc(14px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 -12px 44px rgba(10,24,45,.18);animation:sheet-in .24s cubic-bezier(.2,.8,.2,1)}
+  .task-modal:before{content:"";display:block;width:38px;height:4px;border-radius:99px;background:#cbd2dc;margin:-9px auto 17px}
+  .modal-head{position:sticky;top:-20px;z-index:3;background:var(--surface);padding:14px 0 12px;margin:0 0 15px}
+  .modal-head h2{font-size:20px;letter-spacing:-.45px}
+  .form-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+  .field{gap:7px;margin-bottom:14px;min-width:0}
+  .field>span{font-size:11px;letter-spacing:.1px}
+  .field input,.field select,.field textarea,.task-modal input,.task-modal select,.task-modal textarea{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:48px;padding:12px 13px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.35}
+  .field textarea{min-height:104px;resize:vertical}
+  .modal-actions{position:sticky;bottom:calc(-14px - env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:9px;margin:5px -18px calc(-14px - env(safe-area-inset-bottom));padding:13px 18px calc(14px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 18px rgba(20,36,58,.045)}
+  .modal-actions button{min-height:48px;justify-content:center;border-radius:11px;font-size:13px;white-space:nowrap}
+  .modal-actions .primary-button{box-shadow:0 6px 16px rgba(49,95,189,.2)}
+  body:has(.modal-backdrop) .mobile-nav{display:none}
+  body:has(.modal-backdrop) .app-shell{padding-bottom:0}
+  .toast-message{z-index:80}
+}
+@keyframes sheet-in{from{transform:translateY(28px);opacity:.7}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
