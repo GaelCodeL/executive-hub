@@ -860,3 +860,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   body:has(.modal-backdrop){overflow:hidden!important;position:fixed!important;width:100%!important}
   body:has(.modal-backdrop) .mobile-nav{display:none!important}
 }
+
+/* Executive copilot v2 */
+.assistant-guide p{margin:11px 0 0;padding:0 0 10px;border-bottom:1px solid var(--line);font-size:10px;line-height:1.5;color:var(--muted)}
+.assistant-guide p:last-child{border-bottom:0;padding-bottom:0}
+.assistant-risk{color:#c56d62!important}
+.assistant-page .assistant-hero{border-color:color-mix(in srgb,var(--blue) 16%,var(--line))}
+.assistant-page .assistant-suggestions button:hover{border-color:color-mix(in srgb,var(--blue) 40%,var(--line));background:var(--soft)}
+.assistant-page .assistant-reply{animation:assistant-in .22s ease-out}
+@keyframes assistant-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){
+ .assistant-guide p{font-size:11px}
+ .assistant-page .assistant-status{max-width:135px;white-space:normal;line-height:1.4}
+ .assistant-page .assistant-conversation{min-height:210px}
+ .assistant-page .assistant-input-row{position:sticky;bottom:65px}
+}
+@media(prefers-reduced-motion:reduce){.assistant-page .assistant-reply{animation:none}}
