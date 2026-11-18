@@ -876,3 +876,19 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  .assistant-page .assistant-input-row{position:sticky;bottom:65px}
 }
 @media(prefers-reduced-motion:reduce){.assistant-page .assistant-reply{animation:none}}
+
+/* Live AI copilot authentication and conversation */
+.assistant-auth{max-width:480px;margin:24px auto;padding:28px!important}
+.assistant-auth h2{font:700 22px Manrope;margin:8px 0}
+.assistant-auth>p{font-size:11px;line-height:1.65;color:var(--muted);margin:8px 0 18px}
+.assistant-auth-form{display:grid;gap:10px;margin-bottom:14px}
+.assistant-auth-form input{height:44px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--text);font:12px 'DM Sans'}
+.assistant-auth-form button{justify-content:center;min-height:44px}
+.assistant-error{padding:11px 13px;border-radius:8px;background:#fff2ef;color:#a74c43;font-size:11px;line-height:1.6;margin:12px 0}
+.assistant-input-row button:disabled{opacity:.5;cursor:not-allowed}
+.assistant-chat-head .text-button{font-size:10px;white-space:nowrap}
+.assistant-conversation .assistant-reply{margin-bottom:12px}
+.assistant-conversation .assistant-user-message{display:block;white-space:pre-wrap;line-height:1.65;margin-bottom:12px}
+.assistant-reply>div{min-width:0;flex:1}
+.assistant-reply p{white-space:pre-wrap}
+@media(max-width:760px){.assistant-auth{margin:10px auto;padding:20px!important}.assistant-auth-form input{font-size:16px}.assistant-chat-head{gap:8px}.assistant-chat-head>div{min-width:0}}
