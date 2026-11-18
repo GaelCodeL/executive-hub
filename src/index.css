@@ -1304,3 +1304,69 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .meeting-date-block strong,
   .meeting-date-block span{white-space:nowrap}
 }
+
+
+/* Executive Copilot: prevent mobile text clipping and oversized chat layout */
+@media(max-width:760px){
+  .assistant-workspace,
+  .assistant-chat,
+  .assistant-chat-head,
+  .assistant-conversation,
+  .assistant-reply{min-width:0;max-width:100%;box-sizing:border-box}
+  .assistant-chat-head{
+    align-items:flex-start;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:14px 15px;
+  }
+  .assistant-chat-head>div{
+    flex:1 1 100%;
+    min-width:0;
+    max-width:100%;
+  }
+  .assistant-chat-head strong{
+    display:block;
+    font-size:15px;
+    line-height:1.3;
+    overflow-wrap:anywhere;
+  }
+  .assistant-chat-head span{
+    display:block;
+    font-size:12px;
+    line-height:1.45;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .assistant-suggestions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    padding:11px 12px 0;
+  }
+  .assistant-suggestions button{
+    flex:0 1 auto;
+    max-width:100%;
+    min-height:36px;
+    white-space:normal;
+    text-align:center;
+    font-size:12px;
+    line-height:1.25;
+    padding:8px 11px;
+  }
+  .assistant-conversation{
+    min-height:190px;
+    max-height: min(46dvh,380px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:14px 12px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .assistant-empty{min-height:170px;padding:18px 8px}
+  .assistant-empty strong{font-size:17px;line-height:1.35}
+  .assistant-empty span{max-width:100%;font-size:13px;line-height:1.55}
+  .assistant-reply{padding:11px;gap:8px}
+  .assistant-input-row{gap:8px;padding:10px 12px}
+  .assistant-input-row input{font-size:16px!important;min-width:0;width:0}
+  .assistant-input-row button{flex:0 0 42px}
+}
