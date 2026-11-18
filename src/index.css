@@ -1220,3 +1220,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .presence-dot.preparing{background:#0d9488}
 .presence-dot.installation{background:#2563eb}
 .presence-dot.away{background:#ea580c}
+
+/* Make each person's availability immediately scannable in the directory */
+.org-person-tile>em{display:inline-flex;align-items:center;justify-content:center;margin-top:2px;padding:4px 8px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:10px;font-style:normal;font-weight:700;letter-spacing:.01em;line-height:1.2;border:1px solid var(--line)}
+.org-person-tile:has(.presence-dot.available)>em{background:#e8f6ee;color:#167447;border-color:#c8ead7}
+.org-person-tile:has(.presence-dot.busy)>em{background:#fff0f1;color:#b83240;border-color:#f5d0d4}
+.org-person-tile:has(.presence-dot.call)>em{background:#f3edff;color:#7041b5;border-color:#dfd1fa}
+.org-person-tile:has(.presence-dot.preparing)>em{background:#e6f7f5;color:#08796f;border-color:#c6eae5}
+.org-person-tile:has(.presence-dot.installation)>em{background:#eaf2ff;color:#2459a6;border-color:#d0e0fb}
+.org-person-tile:has(.presence-dot.away)>em{background:#fff3e7;color:#a85a13;border-color:#f5ddc4}
+.org-person-tile:has(.presence-dot.offline)>em{background:#f0f1f3;color:#626b78;border-color:#dfe2e7}
