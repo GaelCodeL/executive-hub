@@ -238,7 +238,8 @@ function App() {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        setSearchOpen(open => !open)
+        setSearchOpen(true)
+        window.setTimeout(() => document.querySelector<HTMLInputElement>('.search-box input')?.focus(), 0)
       }
       if (event.key === 'Escape') {
         setSearchOpen(false)
