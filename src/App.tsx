@@ -273,8 +273,7 @@ function App() {
   const nav = [
     { label: 'Resumen', icon: LayoutDashboard }, { label: 'Agenda', icon: CalendarDays },
     { label: 'Tareas', icon: CheckCheck }, { label: 'Reuniones', icon: Users },
-    { label: 'Notas', icon: FileText }, { label: 'Preferencias', icon: Settings2 },
-    { label: 'Asistente', icon: Sparkles },
+    { label: 'Notas', icon: FileText }, { label: 'Asistente', icon: Sparkles },
   ]
   const results = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('es')
@@ -386,7 +385,7 @@ function App() {
       <div className="brand"><div className="brand-mark"><Command size={19}/></div><div><strong>EXECUTIVE<span>HUB</span></strong><small>PERSONAL WORKSPACE</small></div></div>
       <div className="workspace-label">WORKSPACE</div>
       <nav>{nav.map(item => { const Icon = item.icon; return <button key={item.label} className={`nav-item ${active === item.label ? 'selected' : ''}`} onClick={() => setPage(item.label)}><Icon size={18}/><span>{item.label}</span>{item.label === 'Tareas' && <em>{pending}</em>}</button> })}</nav>
-      <div className="sidebar-bottom"><div className="sidebar-tip"><div className="tip-icon"><Sparkles size={16}/></div><strong>Un día más enfocado.</strong><p>Tu espacio para pensar, decidir y avanzar.</p><button onClick={() => setPage('Asistente')}>Explorar asistente <ArrowRight size={13}/></button></div>
+      <div className="sidebar-bottom">
         <button className={`nav-item ${active === 'Preferencias' ? 'selected' : ''}`} onClick={() => setPage('Preferencias')}><Settings2 size={18}/><span>Preferencias</span></button>
         <div className="profile"><div className="avatar">{store.displayName.slice(0,2).toUpperCase()}</div><div className="profile-info"><strong>{store.displayName}</strong><small>{guestMode?'Sesión de invitado · Temporal':'Cuenta registrada'}</small></div><button className="icon-button" title="Cerrar sesión" onClick={signOutApp}><LogOut size={16}/></button></div>
       </div>
