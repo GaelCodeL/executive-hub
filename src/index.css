@@ -20,7 +20,7 @@
 body{background:#f4f6fa}
 .app-shell{background:radial-gradient(ellipse at 72% -12%,#e9effa 0,transparent 34%),var(--bg)}
 .app-shell.dark{background:radial-gradient(ellipse at 78% -15%,#263958 0,transparent 34%),var(--bg)}
-.sidebar{box-shadow:8px 0 34px rgba(29,48,79,.025)}
+
 .brand-mark{background:linear-gradient(145deg,#294c83,#172c4f);box-shadow:0 5px 13px rgba(32,59,105,.2)}
 .topbar{position:sticky;top:0;z-index:8;backdrop-filter:blur(16px);background:color-mix(in srgb,var(--surface) 92%,transparent)}
 .content{padding-top:40px}
@@ -34,9 +34,9 @@ body{background:#f4f6fa}
 .primary-button:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 7px 16px rgba(49,95,189,.22)}
 .secondary-button,.date-button,.search-trigger{transition:background .18s ease,border-color .18s ease,transform .18s ease}
 .secondary-button:hover,.date-button:hover,.search-trigger:hover{border-color:#cbd7e8;transform:translateY(-1px)}
-.nav-item{transition:background .18s ease,color .18s ease,transform .18s ease}
-.nav-item:hover{background:var(--soft);transform:translateX(2px)}
-.nav-item.selected{box-shadow:inset 3px 0 #4774c1}
+
+
+
 .timeline-row,.task-row,.data-row{transition:background .16s ease}
 .timeline-row:hover,.task-row:hover,.data-row:hover{background:color-mix(in srgb,var(--soft) 65%,transparent)}
 .priority-intro{background:linear-gradient(110deg,#f7f3eb,#f8f9fb)}
