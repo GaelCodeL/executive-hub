@@ -73,17 +73,33 @@ const seed: Store = {
     { id: uid(), title: 'Revisar propuesta comercial Q4', description: '', project: 'Dirección · Comercial', dueAt: localDateTime(today(), '12:30'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
     { id: uid(), title: 'Validar presupuesto de tecnología', description: '', project: 'Finanzas · Operaciones', dueAt: localDateTime(today(), '15:00'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
     { id: uid(), title: 'Enviar feedback a equipo de producto', description: '', project: 'Producto', dueAt: localDateTime(today(), '10:00'), priority: 'medium', status: 'in_progress', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Confirmar planificación de instalaciones', description: 'Coordinar técnicos, rutas y ventanas con clientes.', project: 'Departamento técnico', dueAt: localDateTime(today(), '11:00'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Revisar pedidos pendientes', description: 'Comprobar referencias y disponibilidad de material.', project: 'Administración · Técnico', dueAt: localDateTime(today(), '13:30'), priority: 'medium', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Llamar a cliente para seguimiento', description: 'Actualizar propuesta y próximos pasos.', project: 'Comercial', dueAt: localDateTime(today(), '16:00'), priority: 'medium', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Preparar documentación de personal', description: 'Revisar altas, turnos y documentación interna.', project: 'RR. HH.', dueAt: localDateTime(today(), '17:00'), priority: 'low', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Cerrar informe semanal de servicio', description: 'Consolidar intervenciones y tiempos de respuesta.', project: 'Dirección · Técnico', dueAt: localDateTime(today(), '18:00'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
   ],
   events: [
     { id: uid(), title: 'Revisión de prioridades', description: 'Con dirección', location: 'Sala principal', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), type: 'meeting', allDay: false },
     { id: uid(), title: 'Bloque de trabajo estratégico', description: 'Planificación Q1', location: '', startsAt: localDateTime(today(), '11:00'), endsAt: localDateTime(today(), '12:30'), type: 'focus', allDay: false },
     { id: uid(), title: 'Seguimiento comercial', description: 'Con equipo comercial', location: 'Teams', startsAt: localDateTime(today(), '13:00'), endsAt: localDateTime(today(), '13:45'), type: 'meeting', allDay: false },
+    { id: uid(), title: 'Reunión de coordinación técnica', description: 'Repaso de instalaciones y recursos.', location: 'Sala técnica', startsAt: localDateTime(today(), '10:30'), endsAt: localDateTime(today(), '11:00'), type: 'meeting', allDay: false },
+    { id: uid(), title: 'Revisión de pedidos', description: 'Validación de material y fechas.', location: 'Administración', startsAt: localDateTime(today(), '12:00'), endsAt: localDateTime(today(), '12:30'), type: 'focus', allDay: false },
+    { id: uid(), title: 'Llamadas comerciales', description: 'Seguimiento de oportunidades abiertas.', location: 'Teams', startsAt: localDateTime(today(), '15:00'), endsAt: localDateTime(today(), '15:45'), type: 'meeting', allDay: false },
+    { id: uid(), title: 'Cierre operativo del día', description: 'Incidencias, entregas y planificación de mañana.', location: 'Sala principal', startsAt: localDateTime(today(), '17:30'), endsAt: localDateTime(today(), '18:00'), type: 'meeting', allDay: false },
   ],
   meetings: [
     { id: uid(), title: 'Comité de dirección', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), location: 'Sala principal', attendees: 'Dirección', summary: 'Revisión de prioridades y seguimiento de objetivos.', agreements: 'Validar prioridades del trimestre y revisar avances en la próxima reunión.' },
+    { id: uid(), title: 'Coordinación de servicio técnico', startsAt: localDateTime(today(), '10:30'), endsAt: localDateTime(today(), '11:00'), location: 'Sala técnica', attendees: 'Clara, Gael, Daniel y Ricardo', summary: 'Revisión de instalaciones, incidencias abiertas y disponibilidad de técnicos.', agreements: 'Confirmar rutas, material necesario y responsable de cada intervención.' },
+    { id: uid(), title: 'Seguimiento comercial', startsAt: localDateTime(today(), '15:00'), endsAt: localDateTime(today(), '15:45'), location: 'Microsoft Teams', attendees: 'Germán, María y Doribel', summary: 'Repaso de oportunidades, propuestas enviadas y clientes pendientes.', agreements: 'Actualizar CRM y fijar fecha de próximo contacto para cada oportunidad.' },
+    { id: uid(), title: 'Administración y personas', startsAt: localDateTime(today(), '16:00'), endsAt: localDateTime(today(), '16:30'), location: 'Sala de reuniones', attendees: 'Germán, Gloria y Esther', summary: 'Revisión de documentación, planificación y necesidades de personal.', agreements: 'Consolidar documentación pendiente y compartir calendario de ausencias.' },
   ],
   notes: [
     { id: uid(), title: 'Ideas para Q1', content: 'Revisar objetivos estratégicos, presupuesto y capacidad del equipo.', pinned: true, updatedAt: new Date().toISOString() },
+    { id: uid(), title: 'Plan operativo del departamento técnico', content: 'Prioridades: planificación de instalaciones, preparación de material, asignación de técnicos y cierre de partes. Clara coordina el servicio técnico.', pinned: true, updatedAt: new Date().toISOString() },
+    { id: uid(), title: 'Seguimiento comercial Q4', content: 'María y Doribel mantienen el seguimiento de propuestas y clientes. Revisar oportunidades abiertas y próximos contactos.', pinned: false, updatedAt: new Date().toISOString() },
+    { id: uid(), title: 'Procesos de administración y RR. HH.', content: 'Gloria coordina Recursos Humanos y Administración. Esther da soporte a la gestión administrativa y documentación.', pinned: false, updatedAt: new Date().toISOString() },
+    { id: uid(), title: 'Indicadores de servicio', content: 'Revisar intervenciones completadas, tiempos de respuesta, desplazamientos, incidencias reabiertas y satisfacción del cliente.', pinned: false, updatedAt: new Date().toISOString() },
   ],
 }
 function loadStore(): Store {
