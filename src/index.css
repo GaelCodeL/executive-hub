@@ -892,3 +892,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .assistant-reply>div{min-width:0;flex:1}
 .assistant-reply p{white-space:pre-wrap}
 @media(max-width:760px){.assistant-auth{margin:10px auto;padding:20px!important}.assistant-auth-form input{font-size:16px}.assistant-chat-head{gap:8px}.assistant-chat-head>div{min-width:0}}
+
+
+/* Executive Hub UI refinements */
+.search-box{position:relative;height:36px;width:190px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:#929baa}
+.search-box:focus-within{border-color:#9bb1d5;box-shadow:0 0 0 3px #315fbd12}
+.search-box input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:11px 'DM Sans'}
+.search-box input::placeholder{color:#929baa}
+.search-box kbd{flex-shrink:0;font:9px monospace;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 5px;color:var(--muted)}
+.search-panel{position:absolute;top:calc(100% + 8px);right:0;left:auto;width:320px;max-height:340px;overflow:auto;display:block;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 35px #1c2b4420;z-index:30}
+.search-panel button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 10px;border:0;border-radius:6px;background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.search-panel button:hover{background:var(--soft)}
+.search-panel button span{font-size:11px}
+.search-panel button small{font-size:9px;color:var(--muted)}
+.search-panel p{margin:0;padding:12px;font-size:11px;color:var(--muted)}
+.task-modal .modal-head-actions,.task-modal .modal-done{display:none!important}
+.task-modal .modal-head{justify-content:flex-start}
+@media(max-width:760px){.search-box{width:138px;height:36px;padding:0 8px;gap:6px}.search-box input{font-size:11px}.search-box kbd{display:none}.search-panel{position:absolute;top:calc(100% + 8px);right:0;left:auto;width:min(300px,calc(100vw - 28px));max-height:55vh}.top-actions{position:relative}}
