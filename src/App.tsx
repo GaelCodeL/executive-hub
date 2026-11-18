@@ -301,7 +301,7 @@ function App() {
       if (!guest && !ownProfile && hasEmployeeData) {
         const {data:newMember,error:createError} = await client.from('organization_members').insert({
           user_id:userId, full_name:String(metadata.full_name).trim(), email:authSession.user.email || null,
-          department:metadata.department, position:String(metadata.position).trim(), status:'Disponible'
+          department:metadata.department, position:String(metadata.position).trim(), status:'Disponible',last_seen_at:new Date().toISOString()
         }).select().single()
         if (createError) { setCloudError(createError.message); return }
         companyMembers = [...companyMembers,newMember]
@@ -423,7 +423,7 @@ function App() {
     if (!supabase || !authSession || authSession.user.is_anonymous) return
     const {error} = await (supabase as any).from('organization_members').insert({
       user_id: authSession.user.id, full_name: orgProfileDraft.full_name.trim() || store.displayName,
-      department: orgProfileDraft.department, position: orgProfileDraft.position.trim(), status:'Disponible'
+      department: orgProfileDraft.department, position: orgProfileDraft.position.trim(), status:'Disponible',last_seen_at:new Date().toISOString()
     })
     if (error) { setToast(error.message); return }
     setToast('Perfil organizativo creado')
@@ -446,7 +446,7 @@ function App() {
   const updateMemberStatus = async (member: OrgMember,status: string,status_note = member.status_note) => {
     const updatedAt = new Date().toISOString()
     if (guestMode) {
-      setOrgMembers(current => current.map(item => item.id===member.id ? {...item,status,status_note,status_updated_at:updatedAt} : item))
+      setOrgMembers(current => current.map(item => item.id===member.id ? {...item,status,status_note,status_updated_at:updatedAt,last_seen_at:updatedAt} : item))
       return
     }
     if (!supabase || !(member.user_id === authSession?.user.id || canManageMember(member))) return
@@ -555,7 +555,7 @@ function App() {
     finally { setAuthLoading(false) }
   }
   const signOutApp = async () => { if(supabase && authSession) { await (supabase as any).from('organization_members').update({last_seen_at:null}).eq('user_id',authSession.user.id); await supabase.auth.signOut() } setPresenceMenuOpen(false); setGuestMode(false); setGuestSessionId(''); setOrgMembers([]); setOrgTasks([]); setAssistantMessages([]); setAssistantError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setCloudReady(false) }
-  const enterAsGuest = () => { setOrgMembers(DEMO_ORG_MEMBERS.map(member=>({...member}))); setOrgTasks(DEMO_ORG_TASKS.map(task=>({...task}))); setGuestSessionId(crypto.randomUUID()); setGuestMode(true); setAuthSession(null); setCloudReady(false); setCloudError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setSettingsTheme('light'); setAssistantMessages([]); setAssistantError(''); setActive('Resumen') }
+  const enterAsGuest = () => { setOrgMembers(DEMO_ORG_MEMBERS.map(member=>({...member,last_seen_at:new Date().toISOString()}))); setOrgTasks(DEMO_ORG_TASKS.map(task=>({...task}))); setGuestSessionId(crypto.randomUUID()); setGuestMode(true); setAuthSession(null); setCloudReady(false); setCloudError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setSettingsTheme('light'); setAssistantMessages([]); setAssistantError(''); setActive('Resumen') }
     const toggleTask = (id: string) => { const task=tasks.find(t=>t.id===id); if(!task)return; save({ ...store, tasks: tasks.map(t => t.id === id ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' } : t) }); setToast(task.status === 'completed' ? 'Tarea reabierta' : 'Tarea completada') };
    const changeTaskPriority = (id:string, priority:Priority) => save({...store,tasks:tasks.map(t=>t.id===id?{...t,priority}:t)})
   const removeTask = (id: string) => { if (confirm('¿Eliminar esta tarea?')) { save({ ...store, tasks: tasks.filter(t => t.id !== id) }); setToast('Tarea eliminada') } }
