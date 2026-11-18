@@ -260,6 +260,8 @@ function App() {
   useEffect(() => {
     if (!supabase || !authSession || authSession.user.is_anonymous) { setOrgMembers([]); setOrgTasks([]); return }
     let alive = true
+    const userId = authSession.user.id
+    const guest = Boolean(authSession.user.is_anonymous)
     setOrgLoading(true)
     const client = supabase as any
     Promise.all([
