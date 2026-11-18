@@ -1197,7 +1197,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .presence-trigger>svg{color:var(--muted);transform:rotate(90deg)}
 .presence-trigger .presence-dot{width:9px;height:9px;box-shadow:none}
 .presence-dot.available{background:#16a36a}
-.presence-dot.working{background:#3685d8}
 .presence-dot.busy{background:#e34d59}
 .presence-dot.away{background:#e69a28}
 .presence-dot.break{background:#9665c8}
@@ -1220,5 +1219,4 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .presence-dot.call{background:#8b5cf6}
 .presence-dot.preparing{background:#0d9488}
 .presence-dot.installation{background:#2563eb}
-.presence-dot.break{background:#d97706}
 .presence-dot.away{background:#ea580c}
