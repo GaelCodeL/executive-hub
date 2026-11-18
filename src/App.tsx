@@ -20,6 +20,31 @@ const localDateTime = (date: string, time: string) => date && time ? new Date(da
 const dateInput = (value: string) => { if (!value) return ''; const d = new Date(value); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const timeInput = (value: string) => value ? new Date(value).toTimeString().slice(0, 5) : ''
 const uid = () => crypto.randomUUID()
+
+const renderAssistantInline = (value: string) =>
+  value.split(/(\\*\\*.*?\\*\\*)/g).filter(Boolean).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : <span key={index}>{part}</span>
+  )
+
+const renderAssistantMarkdown = (content: string) =>
+  content.replace(/\\r/g, '').split('\\n').map((raw, index) => {
+    const line = raw.trim()
+    if (!line) return <div className="assistant-md-space" key={index}/>
+    const heading = line.match(/^(#{1,3})\\s+(.+)$/)
+    if (heading) {
+      const Tag = heading[1].length === 1 ? 'h3' : 'h4'
+      return <Tag className="assistant-md-heading" key={index}>{renderAssistantInline(heading[2])}</Tag>
+    }
+    const bullet = line.match(/^[-*]\\s+(.+)$/)
+    if (bullet) return <div className="assistant-md-list-item" key={index}><span>•</span><div>{renderAssistantInline(bullet[1])}</div></div>
+    const numbered = line.match(/^(\\d+)[.)]\\s+(.+)$/)
+    if (numbered) return <div className="assistant-md-list-item" key={index}><span>{numbered[1]}.</span><div>{renderAssistantInline(numbered[2])}</div></div>
+    if (/^---+$/.test(line)) return <hr className="assistant-md-divider" key={index}/>
+    return <p className="assistant-md-paragraph" key={index}>{renderAssistantInline(line)}</p>
+  })
+
 const seed: Store = {
   displayName: 'Germán', theme: 'light',
   tasks: [
@@ -434,7 +459,7 @@ function App() {
               <button onClick={()=>submitAssistantQuestion('Detecta riesgos, retrasos y tareas vencidas.')}>Riesgos y vencimientos</button>
               <button onClick={()=>submitAssistantQuestion('Analiza el progreso general del workspace.')}>Progreso</button>
             </div>
-            <div className="assistant-conversation">{assistantMessages.length ? assistantMessages.map((m,i)=><div key={i} className={m.role==='user'?'assistant-user-message':'assistant-reply'}>{m.role==='assistant'&&<Sparkles size={16}/>}<div>{m.content.split('\n').map((line,j)=><p key={j}>{line || '\u00a0'}</p>)}</div></div>) : <div className="assistant-empty"><Sparkles size={22}/><strong>¿Qué necesitas resolver?</strong><span>Haz cualquier pregunta. El modelo puede razonar sobre tus datos y ayudarte con tareas ejecutivas.</span></div>}{assistantLoading&&<div className="assistant-reply"><Sparkles size={16}/><div><p>Analizando el contexto y preparando una respuesta…</p></div></div>}{assistantError&&<div className="assistant-error">{assistantError}</div>}</div>
+            <div className="assistant-conversation">{assistantMessages.length ? assistantMessages.map((m,i)=><div key={i} className={m.role==='user'?'assistant-user-message':'assistant-reply'}>{m.role==='assistant'&&<Sparkles size={16}/>}<div className="assistant-markdown">{renderAssistantMarkdown(m.content)}</div></div>) : <div className="assistant-empty"><Sparkles size={22}/><strong>¿Qué necesitas resolver?</strong><span>Haz cualquier pregunta. El modelo puede razonar sobre tus datos y ayudarte con tareas ejecutivas.</span></div>}{assistantLoading&&<div className="assistant-reply"><Sparkles size={16}/><div><p>Analizando el contexto y preparando una respuesta…</p></div></div>}{assistantError&&<div className="assistant-error">{assistantError}</div>}</div>
             <form className="assistant-input-row" onSubmit={e=>{e.preventDefault();submitAssistantQuestion(assistantQuestion)}}><input value={assistantQuestion} onChange={e=>setAssistantQuestion(e.target.value)} placeholder="Pregunta lo que necesites…" disabled={assistantLoading}/><button type="submit" aria-label="Enviar consulta" disabled={assistantLoading||!assistantQuestion.trim()}><ArrowRight size={18}/></button></form>
           </div><aside className="assistant-side">
             <div className="panel"><div className="eyebrow">PULSO DEL WORKSPACE</div><div className="assistant-context-row"><span>Tareas abiertas</span><strong>{pending}</strong></div><div className="assistant-context-row"><span>Prioridad alta</span><strong>{tasks.filter(t=>t.status!=='completed'&&t.priority==='high').length}</strong></div><div className="assistant-context-row"><span>Vencidas</span><strong className={overdue?'assistant-risk':''}>{overdue}</strong></div><div className="assistant-context-row"><span>Eventos hoy</span><strong>{todayEvents.length}</strong></div><div className="assistant-context-row"><span>Notas guardadas</span><strong>{store.notes.length}</strong></div></div>
