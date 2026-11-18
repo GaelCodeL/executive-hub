@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 import {
-  Activity, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronRight,
+  Activity, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronRight, Building2, BriefcaseBusiness, UserPlus,
   Clock3, Command, FileText, LayoutDashboard, Menu, Moon, MoreHorizontal,
   Plus, Search, Settings2, Sparkles, Sun, Target, Users, X, Zap, Trash2,
   Pencil, Pin, PinOff, ListTodo, CalendarPlus, Save, Filter, LogOut, Download, Upload
@@ -14,6 +14,10 @@ type EventItem = { id: string; title: string; description: string; location: str
 type Meeting = { id: string; title: string; startsAt: string; endsAt: string; location: string; attendees: string; summary: string; agreements?: string }
 type Note = { id: string; title: string; content: string; pinned: boolean; updatedAt: string }
 type Store = { tasks: Task[]; events: EventItem[]; meetings: Meeting[]; notes: Note[]; displayName: string; theme: 'light' | 'dark' }
+type OrgMember = { id: string; user_id: string | null; full_name: string; email: string | null; department: string; position: string; manager_user_id: string | null; is_org_admin: boolean; status: string; status_note: string; status_updated_at: string }
+type OrgTask = { id: string; title: string; description: string; assigned_to: string; assigned_by: string; status: string; due_at: string | null }
+const ORG_DEPARTMENTS = ['Dirección','Administración','Departamento técnico','Comercial','RR. HH.']
+const ORG_STATUSES = ['Disponible','Trabajando','En llamada','Preparando pedido','En instalación','Descanso','Ausente']
 const STORE_KEY = 'executive-hub-v2'
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 const localDateTime = (date: string, time: string) => date && time ? new Date(date + 'T' + time).toISOString() : ''
@@ -176,6 +180,11 @@ function App() {
   const [authPassword, setAuthPassword] = useState('')
   const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
   const [authLoading, setAuthLoading] = useState(false)
+  const [orgMembers, setOrgMembers] = useState<OrgMember[]>([])
+  const [orgTasks, setOrgTasks] = useState<OrgTask[]>([])
+  const [orgLoading, setOrgLoading] = useState(false)
+  const [orgProfileDraft, setOrgProfileDraft] = useState({full_name:'',department:'Departamento técnico',position:''})
+  const [orgTaskDrafts, setOrgTaskDrafts] = useState<Record<string,{title:string;description:string;due_at:string}>>({})
 
   useEffect(() => { if (!supabase) return; let alive = true; supabase.auth.getSession().then(({data}) => { if (alive) setAuthSession(data.session) }); const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session) => { setCloudReady(false); setAuthSession(session) }); return () => { alive=false; subscription.unsubscribe() } }, [])
   useEffect(() => {
@@ -210,6 +219,23 @@ function App() {
     }
     void load()
     return () => { alive=false }
+  }, [authSession?.user.id])
+  useEffect(() => {
+    if (!supabase || !authSession || authSession.user.is_anonymous) { setOrgMembers([]); setOrgTasks([]); return }
+    let alive = true
+    setOrgLoading(true)
+    const client = supabase as any
+    Promise.all([
+      client.from('organization_members').select('*').order('department').order('full_name'),
+      client.from('organization_tasks').select('*').order('created_at',{ascending:false}),
+    ]).then(([members,tasks]) => {
+      if (!alive) return
+      if (members.error || tasks.error) { setCloudError(members.error?.message || tasks.error?.message || 'No se ha podido cargar la organización'); return }
+      setOrgMembers(members.data || [])
+      setOrgTasks(tasks.data || [])
+    }).catch(error => { if(alive) setCloudError(error instanceof Error ? error.message : 'No se ha podido cargar la organización') })
+      .finally(() => { if(alive) setOrgLoading(false) })
+    return () => { alive = false }
   }, [authSession?.user.id])
   useEffect(() => {
     if (!supabase || !authSession || !cloudReady) return
@@ -298,7 +324,7 @@ function App() {
   const nav = [
     { label: 'Resumen', icon: LayoutDashboard }, { label: 'Agenda', icon: CalendarDays },
     { label: 'Tareas', icon: CheckCheck }, { label: 'Reuniones', icon: Users },
-    { label: 'Notas', icon: FileText }, { label: 'Asistente', icon: Sparkles },
+    { label: 'Mi organización', icon: Building2 }, { label: 'Notas', icon: FileText }, { label: 'Asistente', icon: Sparkles },
   ]
   const results = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('es')
@@ -311,6 +337,45 @@ function App() {
       .filter(section => section.label.toLocaleLowerCase('es').includes(q))
       .map(section => ({ label: section.label, detail: 'Sección de EXECUTIVE HUB', go: section.label }))
   }, [query])
+  const myOrgMember = orgMembers.find(member => member.user_id === authSession?.user.id)
+  const canManageOrg = Boolean(myOrgMember?.is_org_admin)
+  const canManageMember = (member: OrgMember) => canManageOrg || member.manager_user_id === authSession?.user.id
+  const registerOrgProfile = async () => {
+    if (!supabase || !authSession || authSession.user.is_anonymous) return
+    const {error} = await (supabase as any).from('organization_members').insert({
+      user_id: authSession.user.id, full_name: orgProfileDraft.full_name.trim() || store.displayName,
+      department: orgProfileDraft.department, position: orgProfileDraft.position.trim(), status:'Disponible'
+    })
+    if (error) { setToast(error.message); return }
+    setToast('Perfil organizativo creado')
+    const {data} = await (supabase as any).from('organization_members').select('*').order('department').order('full_name')
+    setOrgMembers(data || [])
+  }
+  const updateMyOrgStatus = async (status: string, status_note = '') => {
+    if (!supabase || !myOrgMember) return
+    const {error} = await (supabase as any).from('organization_members').update({status,status_note,status_updated_at:new Date().toISOString()}).eq('id',myOrgMember.id)
+    if (error) { setToast(error.message); return }
+    setOrgMembers(current => current.map(member => member.id === myOrgMember.id ? {...member,status,status_note,status_updated_at:new Date().toISOString()} : member))
+  }
+  const assignOrgTask = async (member: OrgMember) => {
+    if (!supabase || !authSession || !canManageMember(member) || !member.user_id) return
+    const draft = orgTaskDrafts[member.id] || {title:'',description:'',due_at:''}
+    if (!draft.title.trim()) return
+    const {data,error} = await (supabase as any).from('organization_tasks').insert({
+      title:draft.title.trim(),description:draft.description.trim(),assigned_to:member.user_id,
+      assigned_by:authSession.user.id,due_at:draft.due_at ? new Date(draft.due_at).toISOString() : null
+    }).select().single()
+    if (error) { setToast(error.message); return }
+    setOrgTasks(current => [data,...current])
+    setOrgTaskDrafts(current => ({...current,[member.id]:{title:'',description:'',due_at:''}}))
+    setToast('Tarea asignada')
+  }
+  const updateOrgTaskStatus = async (task: OrgTask,status: string) => {
+    if (!supabase) return
+    const {error} = await (supabase as any).from('organization_tasks').update({status,updated_at:new Date().toISOString()}).eq('id',task.id)
+    if (error) { setToast(error.message); return }
+    setOrgTasks(current => current.map(item => item.id===task.id ? {...item,status} : item))
+  }
   const openTaskEditor = (task?: Task) => { setEditingTaskId(task?.id || null); setTaskDraft(task ? { title: task.title, description: task.description, project: task.project, dueDate: dateInput(task.dueAt), dueTime: timeInput(task.dueAt), priority: task.priority } : blankTask()); setTaskForm(true) }
   const addTask = () => {
     if (!taskDraft.title.trim()) return
@@ -444,6 +509,16 @@ function App() {
           <div className="panel data-panel">{agendaEvents.map(ev=><div className="data-row" key={ev.id}><div className={`event-time-block event-type-${ev.type}`}><strong>{fmtTime(ev.startsAt)}</strong><span>{fmtTime(ev.endsAt)}</span></div><div className="data-main"><strong>{ev.title}</strong><span>{ev.location||'Sin ubicación'} · {ev.type==='meeting'?'Reunión':ev.type==='focus'?'Trabajo de foco':ev.type==='reminder'?'Recordatorio':'Personal'}</span>{ev.description&&<p>{ev.description}</p>}</div><button className="icon-button" title="Editar evento" onClick={()=>openEventEditor(ev)}><Pencil size={15}/></button><button className="icon-button danger" title="Eliminar evento" onClick={()=>removeEvent(ev.id)}><Trash2 size={16}/></button></div>)}{!agendaEvents.length&&<p className="empty-state">No hay eventos para esta fecha. Añade uno para planificar tu día.</p>}</div>
         </section>}
         {active === 'Reuniones' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">SEGUIMIENTO Y ACUERDOS</div><h1>Reuniones</h1><p>Registra asistentes, contexto, actas y acuerdos.</p></div><button className="primary-button" onClick={()=>openMeetingEditor()}><Plus size={15}/> Nueva reunión</button></div><div className="meeting-grid">{store.meetings.map(m=><article className="panel meeting-card" key={m.id}><div className="meeting-card-top"><div className="meeting-date-block"><strong>{fmtDate(m.startsAt)}</strong><span>{fmtTime(m.startsAt)}{m.endsAt?' – '+fmtTime(m.endsAt):''}</span></div><div className="meeting-card-actions"><button className="icon-button" title="Editar reunión" onClick={()=>openMeetingEditor(m)}><Pencil size={15}/></button><button className="icon-button danger" title="Eliminar reunión" onClick={()=>{if(confirm('¿Eliminar esta reunión?'))save({...store,meetings:store.meetings.filter(x=>x.id!==m.id)})}}><Trash2 size={15}/></button></div></div><h3>{m.title}</h3><div className="meeting-details"><p className="meeting-meta"><Users size={14}/> <span>{m.attendees||'Sin asistentes indicados'}</span></p><p className="meeting-meta"><CalendarDays size={14}/> <span>{m.location||'Sin ubicación'}</span></p></div><div className="meeting-summary"><strong>Acta / contexto</strong><p>{m.summary||'Todavía no hay acta o resumen.'}</p><div className="meeting-agreements"><strong>Acuerdos y próximos pasos</strong><p>{m.agreements||'Sin acuerdos registrados todavía.'}</p></div></div></article>)}{!store.meetings.length&&<p className="empty-state">Todavía no has registrado reuniones.</p>}</div></section>}
+        {active === 'Mi organización' && <section className="module-page organization-page">
+          <div className="module-title"><div><div className="eyebrow">PERSONAS Y EQUIPOS</div><h1>Mi organización</h1><p>Organigrama, disponibilidad y trabajo del equipo en tiempo real.</p></div></div>
+          {guestMode || authSession?.user.is_anonymous ? <div className="panel notice-panel"><Building2 size={18}/><p>El directorio de empresa está disponible únicamente para cuentas corporativas registradas, no para sesiones invitadas.</p></div> : !myOrgMember ? <div className="panel org-onboarding"><div className="org-section-heading"><div><span className="eyebrow">ALTA EN LA ORGANIZACIÓN</span><h2>Completa tu ficha de empleado</h2><p>Tu perfil permitirá que el equipo te encuentre y conozca tu disponibilidad.</p></div><UserPlus size={22}/></div><div className="form-grid">{field('Nombre y apellidos',<input value={orgProfileDraft.full_name} onChange={e=>setOrgProfileDraft({...orgProfileDraft,full_name:e.target.value})} placeholder={store.displayName}/>)}{field('Departamento',<select value={orgProfileDraft.department} onChange={e=>setOrgProfileDraft({...orgProfileDraft,department:e.target.value})}>{ORG_DEPARTMENTS.map(department=><option key={department}>{department}</option>)}</select>)}{field('Puesto',<input value={orgProfileDraft.position} onChange={e=>setOrgProfileDraft({...orgProfileDraft,position:e.target.value})} placeholder="Tu puesto en la empresa"/>)}</div><button className="primary-button" onClick={registerOrgProfile} disabled={!orgProfileDraft.full_name.trim()}>Crear mi ficha</button><p className="muted-small">El alta inicial no concede permisos de dirección ni permite asignar tareas a otros empleados.</p></div> : <>
+            <div className="org-overview-grid"><div className="panel org-stat"><span>Personas registradas</span><strong>{orgMembers.length}</strong></div><div className="panel org-stat"><span>Disponibles</span><strong>{orgMembers.filter(m=>m.status==='Disponible').length}</strong></div><div className="panel org-stat"><span>En actividad</span><strong>{orgMembers.filter(m=>['Trabajando','En llamada','Preparando pedido','En instalación'].includes(m.status)).length}</strong></div><div className="panel org-stat"><span>En descanso / ausentes</span><strong>{orgMembers.filter(m=>['Descanso','Ausente'].includes(m.status)).length}</strong></div></div>
+            <div className="panel org-own-status"><div><span className="eyebrow">MI ESTADO ACTUAL</span><strong>{myOrgMember.full_name}</strong><small>{myOrgMember.position} · {myOrgMember.department}</small></div><select value={myOrgMember.status} onChange={e=>updateMyOrgStatus(e.target.value,myOrgMember.status_note)}>{ORG_STATUSES.map(status=><option key={status}>{status}</option>)}</select><input aria-label="Detalle de estado" value={myOrgMember.status_note} onChange={e=>setOrgMembers(current=>current.map(m=>m.id===myOrgMember.id?{...m,status_note:e.target.value}:m))} onBlur={e=>updateMyOrgStatus(myOrgMember.status,e.target.value)} placeholder="¿En qué estás trabajando? (opcional)"/></div>
+            <div className="org-section-heading"><div><span className="eyebrow">ESTRUCTURA</span><h2>Organigrama por departamentos</h2></div><span className="muted-small">{orgLoading?'Actualizando…':'Estado visible para la organización'}</span></div>
+            <div className="org-departments">{ORG_DEPARTMENTS.map(department=>{const people=orgMembers.filter(m=>m.department===department);return <section className="panel org-department" key={department}><header><div><span className="org-department-icon"><Building2 size={17}/></span><div><h3>{department}</h3><small>{people.length} {people.length===1?'persona':'personas'}</small></div></div></header>{people.length?<div className="org-people">{people.map(member=><article className="org-person" key={member.id}><div className="org-avatar">{member.full_name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}</div><div className="org-person-main"><strong>{member.full_name}</strong><span>{member.position||'Puesto no indicado'}</span><small className={'org-status org-status-'+member.status.toLowerCase().replaceAll(' ','-')}>{member.status}{member.status_note?' · '+member.status_note:''}</small></div>{member.user_id===authSession?.user.id&&<span className="org-you">TÚ</span>}{member.manager_user_id&&<small className="org-manager">Responsable asignado</small>}{canManageMember(member)&&member.user_id&&member.user_id!==authSession?.user.id&&<div className="org-assign"><input placeholder="Nueva tarea para esta persona" value={orgTaskDrafts[member.id]?.title||''} onChange={e=>setOrgTaskDrafts(current=>({...current,[member.id]:{title:e.target.value,description:current[member.id]?.description||'',due_at:current[member.id]?.due_at||''}}))}/><button className="secondary-button" onClick={()=>assignOrgTask(member)}>Asignar</button></div>}</article>)}</div>:<p className="org-empty">Todavía no hay personas registradas en este departamento.</p>}</section>})}</div>
+            <div className="org-section-heading"><div><span className="eyebrow">SEGUIMIENTO</span><h2>Tareas del equipo</h2></div></div><div className="panel org-team-tasks">{orgTasks.length?orgTasks.map(task=>{const assignee=orgMembers.find(m=>m.user_id===task.assigned_to);return <div className="org-team-task" key={task.id}><div><strong>{task.title}</strong><span>{assignee?.full_name||'Empleado'} · {task.due_at?'Vence '+fmtDate(task.due_at):'Sin fecha límite'}</span>{task.description&&<small>{task.description}</small>}</div><select value={task.status} onChange={e=>updateOrgTaskStatus(task,e.target.value)} disabled={task.assigned_to!==authSession?.user.id&&task.assigned_by!==authSession?.user.id}>{['Pendiente','En curso','Bloqueada','Completada'].map(status=><option key={status}>{status}</option>)}</select></div>}):<p className="org-empty">Todavía no hay tareas asignadas dentro de la organización.</p>}</div>
+          </>}
+        </section>}
         {active === 'Notas' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">CONOCIMIENTO Y CONTEXTO</div><h1>Notas</h1><p>Captura ideas, decisiones y puntos importantes.</p></div><button className="primary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}><Plus size={15}/> Nueva nota</button></div><div className="notes-layout"><div className="panel note-editor"><div className="eyebrow">{editingNote?'EDITAR NOTA':'NUEVA NOTA'}</div><input className="note-title-input" value={noteDraft.title} onChange={e=>setNoteDraft({...noteDraft,title:e.target.value})} placeholder="Título de la nota"/><textarea value={noteDraft.content} onChange={e=>setNoteDraft({...noteDraft,content:e.target.value})} placeholder="Escribe aquí tus ideas, decisiones o recordatorios..."/><div className="note-editor-actions"><button className="secondary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}>Limpiar</button><button className="primary-button" onClick={saveNote}><Save size={14}/> Guardar nota</button></div></div><div className="notes-list">{[...store.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)).map(n=><article className="panel note-card" key={n.id}><div className="note-card-head"><strong>{n.title}</strong><div><button className="icon-button" title={n.pinned?'Desfijar':'Fijar'} onClick={()=>togglePin(n.id)}>{n.pinned?<Pin size={15}/>:<PinOff size={15}/>}</button><button className="icon-button" title="Editar" onClick={()=>editNote(n)}><Pencil size={15}/></button><button className="icon-button danger" title="Eliminar" onClick={()=>deleteNote(n.id)}><Trash2 size={15}/></button></div></div><p>{n.content||'Nota vacía'}</p><small>Actualizada {fmtDate(n.updatedAt)}</small></article>)}{!store.notes.length&&<p className="empty-state">Aún no tienes notas guardadas.</p>}</div></div></section>}
         {active === 'Preferencias' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">PERSONALIZACIÓN</div><h1>Preferencias</h1><p>Adapta tu espacio de trabajo.</p></div></div><div className="panel settings-panel"><div className="setting-row"><div><strong>Nombre visible</strong><span>Se utiliza en el saludo y el perfil.</span></div><input value={settingsName} onChange={e=>setSettingsName(e.target.value)} /></div><div className="setting-row"><div><strong>Apariencia</strong><span>Selecciona el tema de la aplicación.</span></div><select value={settingsTheme} onChange={e=>setSettingsTheme(e.target.value as 'light'|'dark')}><option value="light">Corporate Light</option><option value="dark">Executive Dark</option></select></div>{guestMode ? <div className="setting-row"><div><strong>Modo invitado</strong><span>Los cambios solo existen durante esta sesión. Al salir o recargar, se perderán.</span></div><span className="storage-status">Temporal · Sin guardar</span></div> : <div className="setting-row"><div><strong>Almacenamiento</strong><span>Los datos de tu cuenta se sincronizan con tu workspace.</span></div><span className="storage-status">Nube · Supabase</span></div>}<div className="settings-actions">{!guestMode && <><button className="secondary-button" onClick={exportBackup}><Download size={14}/> Exportar copia</button><label className="secondary-button import-backup"><Upload size={14}/> Importar copia<input type="file" accept="application/json,.json" onChange={e=>{void importBackup(e.target.files?.[0]);e.currentTarget.value=''}} /></label></> }<button className="primary-button" onClick={()=>{save({...store,displayName:settingsName.trim()||'Usuario',theme:settingsTheme});setToast('Preferencias guardadas')}}><Save size={14}/> Guardar preferencias</button><button className="secondary-button" onClick={()=>{if(confirm('Esto eliminará todos los datos locales de esta demo y restaurará los datos de ejemplo. ¿Continuar?')){save(seed);setSettingsName(seed.displayName);setSettingsTheme(seed.theme);setToast('Datos de ejemplo restaurados')}}}><LogOut size={14}/> Restaurar demo</button></div></div>{guestMode && <div className="notice-panel"><Sparkles size={17}/><p><strong>Sesión temporal.</strong> No se guardan cambios ni se sincronizan datos. Al cerrar esta sesión o recargar la página, se perderán.</p></div>}</section>}
         {active === 'Asistente' && <section className="module-page assistant-page">
