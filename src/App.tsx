@@ -100,6 +100,25 @@ function App() {
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer) } }, [toast])
   useEffect(() => { document.documentElement.style.colorScheme = store.theme }, [store.theme])
   useEffect(() => {
+    const viewport = window.visualViewport
+    const syncViewport = () => {
+      const height = viewport?.height ?? window.innerHeight
+      const offset = viewport?.offsetTop ?? 0
+      document.documentElement.style.setProperty('--eh-viewport-height', height + 'px')
+      document.documentElement.style.setProperty('--eh-viewport-top', offset + 'px')
+    }
+    syncViewport()
+    viewport?.addEventListener('resize', syncViewport)
+    viewport?.addEventListener('scroll', syncViewport)
+    window.addEventListener('resize', syncViewport)
+    return () => {
+      viewport?.removeEventListener('resize', syncViewport)
+      viewport?.removeEventListener('scroll', syncViewport)
+      window.removeEventListener('resize', syncViewport)
+    }
+  }, [])
+
+  useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
