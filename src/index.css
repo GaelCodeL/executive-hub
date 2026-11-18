@@ -1245,3 +1245,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .org-permission-note svg{flex:0 0 auto;color:var(--muted)}
 .org-permission-note p{margin:0}
 @media(max-width:600px){.org-person-modal{padding:18px;max-height:90dvh}.org-person-modal .form-grid{grid-template-columns:1fr}}
+
+
+/* Home navigation affordance and iPhone search focus behavior */
+.brand-home,.mobile-wordmark{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.brand-home{width:100%}
+.brand-home:hover .brand-mark,.mobile-wordmark:active{filter:brightness(1.08)}
+.mobile-wordmark{padding:0;display:flex;align-items:center}
+@media(max-width:760px){.search-box input{font-size:16px!important;line-height:1.25}.search-box{min-width:0}.mobile-wordmark strong{font-size:12px;letter-spacing:1.05px}}
