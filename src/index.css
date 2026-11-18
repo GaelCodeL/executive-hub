@@ -1189,3 +1189,29 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  .org-tree-column{min-width:132px;max-width:150px}
  .org-task-row{gap:7px;padding:10px 8px}
 }
+
+/* Compact workspace presence selector */
+.presence-control{position:relative;display:flex;align-items:center;flex:0 0 auto}
+.presence-trigger{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font:600 11px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.presence-trigger:disabled{opacity:.45;cursor:not-allowed}
+.presence-trigger>svg{color:var(--muted);transform:rotate(90deg)}
+.presence-trigger .presence-dot{width:9px;height:9px;box-shadow:none}
+.presence-dot.available{background:#16a36a}
+.presence-dot.working{background:#3685d8}
+.presence-dot.busy{background:#e34d59}
+.presence-dot.away{background:#e69a28}
+.presence-dot.break{background:#9665c8}
+.presence-dot.offline{background:#9299a5}
+.presence-dismiss{position:fixed;inset:0;z-index:80;border:0;background:transparent;cursor:default}
+.presence-popover{position:absolute;right:0;top:calc(100% + 9px);z-index:90;width:190px;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 12px 35px #10182824;display:grid;gap:3px}
+.presence-popover>strong{padding:7px 8px 8px;font-size:11px;color:var(--muted)}
+.presence-popover>button{display:flex;align-items:center;gap:9px;width:100%;padding:9px 8px;border:0;border-radius:8px;background:transparent;color:var(--text);font:500 11px 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+.presence-popover>button:hover,.presence-popover>button.selected{background:var(--soft)}
+.presence-popover>button .presence-dot{width:9px;height:9px;box-shadow:none}
+.presence-popover>button span{flex:1}
+.presence-popover>button svg{color:var(--blue)}
+@media(max-width:700px){
+ .presence-trigger{height:32px;padding:0 8px;gap:6px}
+ .top-actions{gap:7px}
+ .presence-popover{right:-35px}
+}
