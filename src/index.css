@@ -1023,3 +1023,47 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .org-manager-select{grid-column:2/-1;display:flex;align-items:center;gap:8px}
 .org-manager-select label{font-size:9px;color:var(--muted)}
 .org-manager-select select{height:30px;min-width:0;flex:1;border:1px solid var(--line);border-radius:7px;padding:0 8px;background:var(--surface);color:var(--text);font:10px 'DM Sans',sans-serif}
+
+
+/* Corporate account registration and iOS organization layout */
+.assistant-auth-form select{height:44px;width:100%;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--text);font:12px 'DM Sans',sans-serif}
+.assistant-auth-form input,.assistant-auth-form select{min-width:0;max-width:100%;box-sizing:border-box}
+.org-person{min-width:0}
+.org-person-main{overflow-wrap:anywhere}
+.org-manager-select,.org-assign{min-width:0;max-width:100%}
+.org-manager-select select,.org-assign input{min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:760px){
+ .organization-page{width:100%;min-width:0;overflow-x:clip;gap:13px}
+ .organization-page .module-title{min-width:0}
+ .org-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .org-stat{min-width:0;padding:12px}
+ .org-stat span{font-size:10px;line-height:1.35}
+ .org-stat strong{font-size:22px}
+ .org-own-status{grid-template-columns:minmax(0,1fr);gap:10px;padding:13px}
+ .org-own-status select,.org-own-status input{width:100%;min-width:0;box-sizing:border-box}
+ .org-section-heading{min-width:0;gap:6px}
+ .org-section-heading h2{font-size:16px}
+ .org-departments{grid-template-columns:minmax(0,1fr);gap:10px}
+ .org-department{min-width:0;width:100%}
+ .org-person{grid-template-columns:32px minmax(0,1fr);gap:8px;padding:11px 0}
+ .org-avatar{width:32px;height:32px}
+ .org-person-main{min-width:0}
+ .org-person-main strong{font-size:12px;overflow-wrap:anywhere}
+ .org-you{grid-column:2;justify-self:start}
+ .org-manager,.org-manager-select,.org-assign{grid-column:2;min-width:0;width:100%}
+ .org-manager-select{align-items:stretch;flex-direction:column;gap:5px}
+ .org-manager-select select{width:100%;height:38px;font-size:12px}
+ .org-assign{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+ .org-assign input{width:100%;font-size:12px}
+ .org-assign .secondary-button{min-height:38px;white-space:nowrap}
+ .org-team-task{min-width:0;align-items:stretch;flex-direction:column;gap:8px}
+ .org-team-task select{width:100%;height:38px}
+ .mobile-nav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-left:8px;padding-right:8px}
+ .mobile-nav::-webkit-scrollbar{display:none}
+ .mobile-nav button{flex:0 0 66px;min-width:66px;max-width:66px;font-size:8px;white-space:nowrap}
+ .mobile-nav button span{max-width:64px;overflow:hidden;text-overflow:ellipsis}
+}
+@supports(padding:max(0px)){
+ .mobile-nav{padding-bottom:max(5px,env(safe-area-inset-bottom));height:calc(65px + env(safe-area-inset-bottom))}
+ .app-shell{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+}
