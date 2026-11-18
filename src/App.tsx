@@ -61,13 +61,55 @@ const blankTask = () => ({ title: '', description: '', project: '', dueDate: tod
 const blankEvent = () => ({ title: '', description: '', location: '', date: today(), start: '10:00', end: '10:30', type: 'meeting' as EventItem['type'] })
 const blankMeeting = () => ({ title: '', date: today(), start: '10:00', end: '10:30', location: '', attendees: '', summary: '', agreements: '' })
 
-function buildAssistantAnswer(mode: string, store: Store): string {
- const open=store.tasks.filter(t=>t.status!=='completed'), high=open.filter(t=>t.priority==='high'), key=today()
- const todayEvents=store.events.filter(e=>dateInput(e.startsAt)===key).sort((a,b)=>a.startsAt.localeCompare(b.startsAt))
- const overdue=open.filter(t=>t.dueAt&&dateInput(t.dueAt)<key)
- if(mode==='prioridades'){const out=['Orden recomendado:'];if(overdue.length)out.push('1. Resolver vencimientos: '+overdue.slice(0,3).map(t=>t.title).join('; ')+'.');if(high.length)out.push((overdue.length?'2.':'1.')+' Prioridades altas: '+high.slice(0,3).map(t=>t.title).join('; ')+'.');if(!overdue.length&&!high.length)out.push('No hay tareas vencidas ni prioridades altas. Revisa las tareas medias.');out.push('Limita el foco a tres resultados importantes.');return out.join('\n')}
- if(mode==='reuniones')return todayEvents.length?'Agenda de hoy:\n'+todayEvents.map(e=>fmtTime(e.startsAt)+' · '+e.title+(e.location?' — '+e.location:'')).join('\n')+'\n\nAntes de cada reunión, define el resultado esperado y registra acuerdos con responsable y fecha.':'No hay eventos registrados para hoy. Añade uno desde Agenda y documenta asistentes y acuerdos en Reuniones.'
- return 'Briefing ejecutivo · '+new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(new Date())+'\n\nAgenda: '+todayEvents.length+' compromiso(s).'+(todayEvents.length?' Próximo: '+todayEvents[0].title+' a las '+fmtTime(todayEvents[0].startsAt)+'.':' Sin compromisos registrados.')+'\n\nTareas: '+open.length+' abiertas, '+high.length+' prioritarias y '+overdue.length+' vencidas. '+(high.length?'Empieza por «'+high[0].title+'».':'No hay prioridades altas pendientes.')+'\n\nSiguiente paso: reserva un bloque de concentración y evita fragmentar la mañana.'
+function buildAssistantAnswer(question: string, store: Store): string {
+  const q = question.toLocaleLowerCase('es').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+  const now = new Date()
+  const key = today()
+  const open = store.tasks.filter(t => t.status !== 'completed')
+  const completed = store.tasks.filter(t => t.status === 'completed')
+  const high = open.filter(t => t.priority === 'high')
+  const overdue = open.filter(t => t.dueAt && dateInput(t.dueAt) < key).sort((a,b) => a.dueAt.localeCompare(b.dueAt))
+  const todayTasks = open.filter(t => t.dueAt && dateInput(t.dueAt) === key)
+  const upcomingTasks = open.filter(t => t.dueAt && dateInput(t.dueAt) > key).sort((a,b) => a.dueAt.localeCompare(b.dueAt))
+  const events = store.events.filter(e => dateInput(e.startsAt) >= key).sort((a,b) => a.startsAt.localeCompare(b.startsAt))
+  const todaysEvents = events.filter(e => dateInput(e.startsAt) === key)
+  const nextEvents = events.slice(0,5)
+  const pct = store.tasks.length ? Math.round(completed.length / store.tasks.length * 100) : 0
+  const list = (items: Task[]) => items.length ? items.slice(0,5).map(t => '• ' + t.title + (t.dueAt ? ' · ' + fmtDate(t.dueAt) : '') + ' · ' + priorityLabel(t.priority)).join('\\n') : 'No hay elementos en esta categoría.'
+  const eventList = (items: EventItem[]) => items.length ? items.slice(0,5).map(e => '• ' + fmtTime(e.startsAt) + ' · ' + e.title + (e.location ? ' — ' + e.location : '')).join('\\n') : 'No tienes eventos en este periodo.'
+  const noteMatches = store.notes.filter(n => (n.title + ' ' + n.content).toLocaleLowerCase('es').includes(q.replace(/^(busca|buscar|encuentra|encontrar)\\s+/,'')))
+  const projectNames = [...new Set(open.map(t => t.project).filter(Boolean))]
+  if (/^(hola|buenos dias|buenas|buenas tardes|que tal)/.test(q)) return '¡Hola! Soy tu copiloto de dirección. Puedo analizar tu carga de trabajo, detectar riesgos, preparar reuniones, localizar información y ayudarte a convertir ideas en tareas.\\n\\nPrueba: «¿Qué debería priorizar?», «¿Qué tengo esta semana?» o «Prepara el comité de dirección».'
+  if (q.includes('prior') || q.includes('por donde empiezo') || q.includes('que hago primero') || q.includes('que deberia hacer')) {
+    const lines = ['RECOMENDACIÓN DE PRIORIDADES', '']
+    if (overdue.length) lines.push('1. Resolver vencimientos (' + overdue.length + ')', list(overdue), '')
+    if (high.length) lines.push((overdue.length ? '2.' : '1.') + ' Proteger las tareas de prioridad alta (' + high.length + ')', list(high), '')
+    if (!overdue.length && !high.length) lines.push('No hay vencimientos ni prioridades altas. Mantén el foco en las tareas con fecha más próxima.', list(upcomingTasks), '')
+    lines.push('Criterio: primero compromisos vencidos, después impacto alto y, por último, tareas próximas. Evita abrir más de tres frentes a la vez.')
+    return lines.join('\\n')
+  }
+  if (q.includes('brief') || q.includes('resumen') || q.includes('mi dia') || q.includes('mi jornada') || q.includes('como voy')) {
+    return 'BRIEFING EJECUTIVO · ' + new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(now) + '\\n\\nAGENDA\\n' + eventList(todaysEvents) + '\\n\\nCARGA DE TRABAJO\\n' + open.length + ' tareas abiertas · ' + high.length + ' prioritarias · ' + overdue.length + ' vencidas · ' + pct + '% completado.\\n\\nFOCO RECOMENDADO\\n' + (overdue.length ? 'Desbloquea primero «' + overdue[0].title + '». ' : '') + (high.length ? 'Después avanza «' + high[0].title + '».' : 'No hay tareas de prioridad alta pendientes.') + '\\n\\nCONSEJO\\nReserva un bloque sin interrupciones para el trabajo de mayor impacto.'
+  }
+  if (q.includes('agenda') || q.includes('calendario') || q.includes('esta semana') || q.includes('proximos eventos') || q.includes('proxima reunion')) {
+    return 'AGENDA PRÓXIMA\\n\\n' + eventList(nextEvents) + '\\n\\nHay ' + events.length + ' compromisos futuros registrados. Comprueba que cada reunión tenga objetivo, asistentes y resultado esperado.'
+  }
+  if (q.includes('reunion') || q.includes('comite') || q.includes('prepara') && (q.includes('junta') || q.includes('encuentro'))) {
+    const matches = store.meetings.filter(m => q.includes('comite') ? m.title.toLowerCase().includes('comite') : true).sort((a,b) => a.startsAt.localeCompare(b.startsAt))
+    if (!matches.length) return 'No encuentro reuniones registradas que pueda preparar. Crea una en el apartado Reuniones y añade asistentes, contexto y acuerdos.'
+    return 'PREPARACIÓN DE REUNIONES\\n\\n' + matches.slice(0,3).map(m => '• ' + m.title + ' · ' + fmtDate(m.startsAt) + ' ' + fmtTime(m.startsAt) + '\\n  Asistentes: ' + (m.attendees || 'Pendiente de indicar') + '\\n  Contexto: ' + (m.summary || 'Sin acta o contexto') + '\\n  Acuerdos: ' + (m.agreements || 'Pendientes de registrar')).join('\\n\\n') + '\\n\\nANTES DE ENTRAR\\n1. Define la decisión que debe salir de la reunión.\\n2. Identifica los puntos bloqueados.\\n3. Cierra cada acuerdo con responsable y fecha.'
+  }
+  if (q.includes('vencid') || q.includes('atras') || q.includes('retras')) return 'TAREAS VENCIDAS\\n\\n' + list(overdue) + '\\n\\nRecomendación: confirma si siguen vigentes, renegocia su fecha o ciérralas. Una tarea vencida sin responsable ni siguiente paso es un riesgo de seguimiento.'
+  if (q.includes('tarea') || q.includes('pendiente') || q.includes('trabajo') || q.includes('proyecto')) {
+    if (q.includes('complet')) return 'PROGRESO\\n\\n' + completed.length + ' de ' + store.tasks.length + ' tareas completadas (' + pct + '%).\\n\\n' + (completed.length ? completed.slice(0,5).map(t => '• ' + t.title).join('\\n') : 'Todavía no hay tareas completadas.')
+    if (q.includes('proyecto') && projectNames.length) return 'CARGA POR ÁREA\\n\\n' + projectNames.map(p => '• ' + p + ': ' + open.filter(t => t.project === p).length + ' abiertas').join('\\n') + '\\n\\nAbiertas: ' + open.length + ' · Vencidas: ' + overdue.length + '.'
+    return 'TAREAS ABIERTAS\\n\\n' + list(open) + '\\n\\nVencidas: ' + overdue.length + ' · Para hoy: ' + todayTasks.length + ' · Próximas: ' + upcomingTasks.length + '.'
+  }
+  if (q.includes('nota') || q.includes('busca') || q.includes('buscar') || q.includes('encuentra')) {
+    return noteMatches.length ? 'HE ENCONTRADO ' + noteMatches.length + ' NOTA(S)\\n\\n' + noteMatches.slice(0,5).map(n => '• ' + n.title + '\\n  ' + n.content.slice(0,260)).join('\\n\\n') : 'No encuentro coincidencias en tus notas. Prueba con una palabra clave más concreta o revisa el apartado Notas.'
+  }
+  if (q.includes('ayuda') || q.includes('puedes hacer') || q.includes('que sabes hacer')) return 'PUEDO AYUDARTE CON\\n\\n• Briefing: agenda, carga y foco del día.\\n• Prioridades: vencimientos e impacto.\\n• Reuniones: contexto, asistentes y acuerdos registrados.\\n• Seguimiento: tareas abiertas, completadas y por área.\\n• Búsqueda: localizar notas por palabras clave.\\n• Acción: crear una tarea escribiendo «añade tarea: preparar informe».\\n\\nTrabajo con los datos guardados en este navegador. No envío información a servicios externos.'
+  return 'Puedo ayudarte a tomar decisiones sobre la información de EXECUTIVE HUB.\\n\\nPara darte una respuesta útil, prueba a concretar: «¿Qué debería priorizar?», «¿Qué tareas están vencidas?», «¿Qué reuniones tengo?» o «Busca la nota presupuesto». También puedes pedirme que cree una tarea: «Añade tarea: revisar propuesta comercial».'
 }
 
 function App() {
