@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { supabase, isSupabaseConfigured } from './lib/supabase'
+import type { Session } from '@supabase/supabase-js'
 import {
   Activity, ArrowRight, Bell, CalendarDays, Check, CheckCheck, ChevronRight,
   Clock3, Command, FileText, LayoutDashboard, Menu, Moon, MoreHorizontal,
@@ -137,8 +139,17 @@ function App() {
   const [settingsTheme, setSettingsTheme] = useState(store.theme)
   const [assistantQuestion, setAssistantQuestion] = useState('')
   const [assistantAnswer, setAssistantAnswer] = useState('')
+  const [assistantMessages, setAssistantMessages] = useState<{role:'user'|'assistant';content:string}[]>([])
+  const [assistantLoading, setAssistantLoading] = useState(false)
+  const [assistantError, setAssistantError] = useState('')
+  const [authSession, setAuthSession] = useState<Session | null>(null)
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
+  const [authLoading, setAuthLoading] = useState(false)
 
   useEffect(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)) } catch { setToast('No se ha podido guardar en este dispositivo') } }, [store])
+  useEffect(() => { if (!supabase) return; supabase.auth.getSession().then(({data}) => setAuthSession(data.session)); const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session) => setAuthSession(session)); return () => subscription.unsubscribe() }, [])
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer) } }, [toast])
   useEffect(() => { document.documentElement.style.colorScheme = store.theme }, [store.theme])
   useEffect(() => {
@@ -218,23 +229,51 @@ function App() {
     const item: Task = { id: editingTaskId || uid(), title: taskDraft.title.trim(), description: taskDraft.description, project: taskDraft.project || 'General', dueAt: localDateTime(taskDraft.dueDate, taskDraft.dueTime), priority: taskDraft.priority, status: existing?.status || 'pending', createdAt: existing?.createdAt || new Date().toISOString() }
     save({ ...store, tasks: editingTaskId ? tasks.map(t => t.id === editingTaskId ? item : t) : [item, ...tasks] }); setTaskForm(false); setEditingTaskId(null); setTaskDraft(blankTask()); setToast(editingTaskId ? 'Tarea actualizada' : 'Tarea creada')
   }
-  const submitAssistantQuestion = (question: string) => {
+  const submitAssistantQuestion = async (question: string) => {
     const q = question.trim()
-    if (!q) return
-    const createMatch = q.match(/^(?:por favor[, ]*)?(?:anade|crea|crear|apunta|registra)\\s+(?:una?\\s+)?tarea\\s*[:,-]?\\s*(.+)$/i)
-    if (createMatch?.[1]?.trim()) {
-      const title = createMatch[1].trim().replace(/[.!?]+$/, '')
-      const task: Task = { id: uid(), title, description: 'Creada desde el asistente ejecutivo', project: 'General', dueAt: localDateTime(today(), '17:00'), priority: 'medium', status: 'pending', createdAt: new Date().toISOString() }
-      save({ ...store, tasks: [task, ...store.tasks] })
-      setAssistantAnswer('TAREA CREADA\\n\\n«' + title + '» se ha añadido a tus tareas.\\n\\n• Fecha: hoy\\n• Prioridad: media\\n• Área: General\\n\\nPuedes editar sus detalles desde el apartado Tareas.')
-      setAssistantQuestion('')
-      setToast('Tarea creada desde el asistente')
-      return
+    if (!q || assistantLoading) return
+    if (!supabase || !authSession) { setAssistantError('Inicia sesión para hablar con el modelo de IA.'); return }
+    const nextMessages = [...assistantMessages, { role: 'user' as const, content: q }]
+    setAssistantMessages(nextMessages)
+    setAssistantQuestion('')
+    setAssistantError('')
+    setAssistantLoading(true)
+    const context = {
+      date: today(),
+      tasks: store.tasks.map(t => ({ title:t.title, description:t.description, project:t.project, dueAt:t.dueAt, priority:t.priority, status:t.status })),
+      events: store.events.map(e => ({ title:e.title, description:e.description, location:e.location, startsAt:e.startsAt, endsAt:e.endsAt, type:e.type })),
+      meetings: store.meetings.map(m => ({ title:m.title, startsAt:m.startsAt, endsAt:m.endsAt, location:m.location, attendees:m.attendees, summary:m.summary, agreements:m.agreements })),
+      notes: store.notes.map(n => ({ title:n.title, content:n.content, pinned:n.pinned })),
     }
-    setAssistantAnswer(buildAssistantAnswer(q, store))
-    setAssistantQuestion(q)
+    try {
+      const {data,error} = await supabase.functions.invoke('executive-copilot',{body:{messages:nextMessages,context}})
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      const answer = String(data?.answer || '').trim()
+      if (!answer) throw new Error('El modelo no ha devuelto una respuesta.')
+      setAssistantMessages([...nextMessages,{role:'assistant',content:answer}])
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se ha podido conectar con el asistente.'
+      setAssistantError(message)
+    } finally { setAssistantLoading(false) }
   }
-  const toggleTask = (id: string) => save({ ...store, tasks: tasks.map(t => t.id === id ? { ...t, status: t.status === 'pending' ? 'in_progress' : t.status === 'in_progress' ? 'completed' : 'pending' } : t) })
+  const signInAssistant = async () => {
+    if (!supabase || !authEmail.trim() || !authPassword) return
+    setAuthLoading(true); setAssistantError('')
+    try {
+      if (authMode === 'signup') {
+        const {error} = await supabase.auth.signUp({email:authEmail.trim(),password:authPassword})
+        if (error) throw error
+        setAssistantError('Cuenta creada. Si la confirmación por correo está activada, revisa tu bandeja de entrada y confirma el registro.')
+      } else {
+        const {error} = await supabase.auth.signInWithPassword({email:authEmail.trim(),password:authPassword})
+        if (error) throw error
+      }
+    } catch(error) { setAssistantError(error instanceof Error ? error.message : 'No se ha podido iniciar sesión.') }
+    finally { setAuthLoading(false) }
+  }
+  const signOutAssistant = async () => { if(supabase) await supabase.auth.signOut(); setAssistantMessages([]); setAssistantError('') }
+    const toggleTask = (id: string) => save({ ...store, tasks: tasks.map(t => t.id === id ? { ...t, status: t.status === 'pending' ? 'in_progress' : t.status === 'in_progress' ? 'completed' : 'pending' } : t) })
   const removeTask = (id: string) => { if (confirm('¿Eliminar esta tarea?')) { save({ ...store, tasks: tasks.filter(t => t.id !== id) }); setToast('Tarea eliminada') } }
   const openEventEditor = (event?: EventItem) => { setEditingEventId(event?.id || null); setEventDraft(event ? { title: event.title, description: event.description, location: event.location, date: dateInput(event.startsAt), start: timeInput(event.startsAt), end: timeInput(event.endsAt), type: event.type } : blankEvent()); setEventForm(true) }
   const addEvent = () => {
@@ -312,25 +351,31 @@ function App() {
         {active === 'Notas' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">CONOCIMIENTO Y CONTEXTO</div><h1>Notas</h1><p>Captura ideas, decisiones y puntos importantes.</p></div><button className="primary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}><Plus size={15}/> Nueva nota</button></div><div className="notes-layout"><div className="panel note-editor"><div className="eyebrow">{editingNote?'EDITAR NOTA':'NUEVA NOTA'}</div><input className="note-title-input" value={noteDraft.title} onChange={e=>setNoteDraft({...noteDraft,title:e.target.value})} placeholder="Título de la nota"/><textarea value={noteDraft.content} onChange={e=>setNoteDraft({...noteDraft,content:e.target.value})} placeholder="Escribe aquí tus ideas, decisiones o recordatorios..."/><div className="note-editor-actions"><button className="secondary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}>Limpiar</button><button className="primary-button" onClick={saveNote}><Save size={14}/> Guardar nota</button></div></div><div className="notes-list">{[...store.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)).map(n=><article className="panel note-card" key={n.id}><div className="note-card-head"><strong>{n.title}</strong><div><button className="icon-button" title={n.pinned?'Desfijar':'Fijar'} onClick={()=>togglePin(n.id)}>{n.pinned?<Pin size={15}/>:<PinOff size={15}/>}</button><button className="icon-button" title="Editar" onClick={()=>editNote(n)}><Pencil size={15}/></button><button className="icon-button danger" title="Eliminar" onClick={()=>deleteNote(n.id)}><Trash2 size={15}/></button></div></div><p>{n.content||'Nota vacía'}</p><small>Actualizada {fmtDate(n.updatedAt)}</small></article>)}{!store.notes.length&&<p className="empty-state">Aún no tienes notas guardadas.</p>}</div></div></section>}
         {active === 'Preferencias' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">PERSONALIZACIÓN</div><h1>Preferencias</h1><p>Adapta tu espacio de trabajo.</p></div></div><div className="panel settings-panel"><div className="setting-row"><div><strong>Nombre visible</strong><span>Se utiliza en el saludo y el perfil.</span></div><input value={settingsName} onChange={e=>setSettingsName(e.target.value)} /></div><div className="setting-row"><div><strong>Apariencia</strong><span>Selecciona el tema de la aplicación.</span></div><select value={settingsTheme} onChange={e=>setSettingsTheme(e.target.value as 'light'|'dark')}><option value="light">Corporate Light</option><option value="dark">Executive Dark</option></select></div><div className="setting-row"><div><strong>Almacenamiento</strong><span>Tus cambios se guardan automáticamente en este navegador.</span></div><span className="storage-status">Activo · Local</span></div><div className="settings-actions"><button className="secondary-button" onClick={exportBackup}><Download size={14}/> Exportar copia</button><label className="secondary-button import-backup"><Upload size={14}/> Importar copia<input type="file" accept="application/json,.json" onChange={e=>{void importBackup(e.target.files?.[0]);e.currentTarget.value=''}} /></label><button className="primary-button" onClick={()=>{save({...store,displayName:settingsName.trim()||'Usuario',theme:settingsTheme});setToast('Preferencias guardadas')}}><Save size={14}/> Guardar preferencias</button><button className="secondary-button" onClick={()=>{if(confirm('Esto eliminará todos los datos locales de esta demo y restaurará los datos de ejemplo. ¿Continuar?')){save(seed);setSettingsName(seed.displayName);setSettingsTheme(seed.theme);setToast('Datos de ejemplo restaurados')}}}><LogOut size={14}/> Restaurar demo</button></div></div><div className="notice-panel"><Sparkles size={17}/><p><strong>Sincronización en la nube pendiente.</strong> La conexión con Supabase se habilitará cuando configuremos el inicio de sesión. De momento, esta versión conserva los datos en este dispositivo y navegador.</p></div></section>}
         {active === 'Asistente' && <section className="module-page assistant-page">
-          <div className="module-title"><div><div className="eyebrow">EXECUTIVE INTELLIGENCE</div><h1>Asistente ejecutivo</h1><p>Convierte la actividad del workspace en decisiones y próximos pasos.</p></div><span className="assistant-status"><i/> ACTIVO · CONTEXTO LOCAL</span></div>
-          <div className="assistant-hero panel"><div className="assistant-hero-icon"><Sparkles size={22}/></div><div><span className="eyebrow">COPILOTO DE DIRECCIÓN</span><h2>Menos ruido. Más claridad.</h2><p>Analiza prioridades, compromisos, reuniones y notas para ayudarte a decidir qué merece atención ahora.</p></div></div>
-          <div className="assistant-workspace"><div className="panel assistant-chat">
-            <div className="assistant-chat-head"><div><strong>¿Qué necesitas resolver?</strong><span>Respuestas contextualizadas con tus datos actuales</span></div><span className="local-badge">PRIVADO · LOCAL</span></div>
+          <div className="module-title"><div><div className="eyebrow">EXECUTIVE INTELLIGENCE</div><h1>Asistente ejecutivo</h1><p>Un modelo de IA real con contexto de tu workspace.</p></div><span className="assistant-status"><i/> {authSession ? 'IA CONECTADA' : 'INICIO DE SESIÓN'}</span></div>
+          <div className="assistant-hero panel"><div className="assistant-hero-icon"><Sparkles size={22}/></div><div><span className="eyebrow">EXECUTIVE COPILOT · OPENAI</span><h2>Un copiloto que razona contigo.</h2><p>Pregunta libremente, analiza tus datos, prepara reuniones y redacta comunicaciones con contexto real.</p></div></div>
+          {!isSupabaseConfigured || !supabase ? <div className="panel assistant-auth"><strong>Conexión pendiente</strong><p>La configuración segura de Supabase todavía no está disponible en esta versión.</p></div> : !authSession ? <div className="panel assistant-auth">
+            <div className="eyebrow">ACCESO SEGURO</div><h2>{authMode==='login'?'Inicia sesión':'Crea tu cuenta'}</h2><p>El asistente requiere una sesión autenticada para proteger el acceso al modelo y al contexto de tu workspace.</p>
+            <form onSubmit={e=>{e.preventDefault();signInAssistant()}} className="assistant-auth-form"><input type="email" required value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Correo electrónico"/><input type="password" required minLength={8} value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Contraseña (mín. 8 caracteres)"/><button className="primary-button" disabled={authLoading}>{authLoading?'Conectando…':authMode==='login'?'Iniciar sesión':'Crear cuenta'}</button></form>
+            <button className="text-button" onClick={()=>setAuthMode(authMode==='login'?'signup':'login')}>{authMode==='login'?'¿Aún no tienes cuenta? Crear cuenta':'Ya tengo cuenta · Iniciar sesión'}</button>
+            {assistantError && <p className="assistant-error">{assistantError}</p>}
+          </div> : <div className="assistant-workspace"><div className="panel assistant-chat">
+            <div className="assistant-chat-head"><div><strong>Conversación con EXECUTIVE COPILOT</strong><span>OpenAI · GPT-6.2 Sol · contexto privado de tu workspace</span></div><button className="text-button" onClick={signOutAssistant}>Cerrar sesión</button></div>
             <div className="assistant-suggestions">
-              <button onClick={()=>{setAssistantQuestion('Prepara mi briefing ejecutivo');setAssistantAnswer(buildAssistantAnswer('briefing',store))}}>✦ Briefing ejecutivo</button>
-              <button onClick={()=>{setAssistantQuestion('¿Qué debería priorizar?');setAssistantAnswer(buildAssistantAnswer('prioridades',store))}}>Prioridades</button>
-              <button onClick={()=>{setAssistantQuestion('¿Qué tengo esta semana?');setAssistantAnswer(buildAssistantAnswer('agenda esta semana',store))}}>Mi agenda</button>
-              <button onClick={()=>{setAssistantQuestion('Prepara mis reuniones');setAssistantAnswer(buildAssistantAnswer('prepara reuniones',store))}}>Preparar reuniones</button>
-              <button onClick={()=>{setAssistantQuestion('¿Qué tareas están vencidas?');setAssistantAnswer(buildAssistantAnswer('tareas vencidas',store))}}>Riesgos y vencimientos</button>
-              <button onClick={()=>{setAssistantQuestion('¿Cómo va el progreso de tareas?');setAssistantAnswer(buildAssistantAnswer('progreso tareas completadas',store))}}>Progreso</button>
+              <button onClick={()=>submitAssistantQuestion('Prepara mi briefing ejecutivo de hoy.')}>✦ Briefing ejecutivo</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza mis prioridades y dime qué debería resolver primero.')}>Prioridades</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza mi agenda de esta semana y detecta conflictos.')}>Mi agenda</button>
+              <button onClick={()=>submitAssistantQuestion('Prepara mis próximas reuniones con objetivos y decisiones pendientes.')}>Preparar reuniones</button>
+              <button onClick={()=>submitAssistantQuestion('Detecta riesgos, retrasos y tareas vencidas.')}>Riesgos y vencimientos</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza el progreso general del workspace.')}>Progreso</button>
             </div>
-            <div className="assistant-conversation">{assistantAnswer ? <><div className="assistant-user-message">{assistantQuestion || 'Acción ejecutada'}</div><div className="assistant-reply"><Sparkles size={16}/><div>{assistantAnswer.split('\\n').map((line,i)=><p key={i}>{line || '\u00a0'}</p>)}</div></div></> : <div className="assistant-empty"><Sparkles size={22}/><strong>Tu copiloto está listo</strong><span>Pregunta por tus tareas, agenda, reuniones o notas. También puedes pedirle que cree una tarea.</span></div>}</div>
-            <form className="assistant-input-row" onSubmit={e=>{e.preventDefault();submitAssistantQuestion(assistantQuestion)}}><input value={assistantQuestion} onChange={e=>setAssistantQuestion(e.target.value)} placeholder="Ej. ¿Qué debería priorizar hoy?"/><button type="submit" aria-label="Enviar consulta"><ArrowRight size={18}/></button></form>
+            <div className="assistant-conversation">{assistantMessages.length ? assistantMessages.map((m,i)=><div key={i} className={m.role==='user'?'assistant-user-message':'assistant-reply'}>{m.role==='assistant'&&<Sparkles size={16}/>}<div>{m.content.split('\n').map((line,j)=><p key={j}>{line || '\u00a0'}</p>)}</div></div>) : <div className="assistant-empty"><Sparkles size={22}/><strong>¿Qué necesitas resolver?</strong><span>Haz cualquier pregunta. El modelo puede razonar sobre tus datos y ayudarte con tareas ejecutivas.</span></div>}{assistantLoading&&<div className="assistant-reply"><Sparkles size={16}/><div><p>Analizando el contexto y preparando una respuesta…</p></div></div>}{assistantError&&<div className="assistant-error">{assistantError}</div>}</div>
+            <form className="assistant-input-row" onSubmit={e=>{e.preventDefault();submitAssistantQuestion(assistantQuestion)}}><input value={assistantQuestion} onChange={e=>setAssistantQuestion(e.target.value)} placeholder="Pregunta lo que necesites…" disabled={assistantLoading}/><button type="submit" aria-label="Enviar consulta" disabled={assistantLoading||!assistantQuestion.trim()}><ArrowRight size={18}/></button></form>
           </div><aside className="assistant-side">
             <div className="panel"><div className="eyebrow">PULSO DEL WORKSPACE</div><div className="assistant-context-row"><span>Tareas abiertas</span><strong>{pending}</strong></div><div className="assistant-context-row"><span>Prioridad alta</span><strong>{tasks.filter(t=>t.status!=='completed'&&t.priority==='high').length}</strong></div><div className="assistant-context-row"><span>Vencidas</span><strong className={overdue?'assistant-risk':''}>{overdue}</strong></div><div className="assistant-context-row"><span>Eventos hoy</span><strong>{todayEvents.length}</strong></div><div className="assistant-context-row"><span>Notas guardadas</span><strong>{store.notes.length}</strong></div></div>
-            <div className="panel assistant-guide"><div className="eyebrow">PRUEBA A PREGUNTAR</div><p>«¿Qué está bloqueando mi semana?»</p><p>«Resume las decisiones del comité»</p><p>«Busca la nota de presupuesto»</p><p>«Añade tarea: revisar propuesta»</p></div>
-            <div className="panel assistant-note"><Sparkles size={17}/><strong>Privacidad y alcance</strong><p>Esta versión analiza los datos del dispositivo mediante lógica contextual. No es todavía un modelo generativo conectado; no inventa respuestas ni envía información fuera del navegador.</p></div>
-          </aside></div></section>}
+            <div className="panel assistant-guide"><div className="eyebrow">CAPACIDADES</div><p>Conversación abierta y razonamiento</p><p>Briefings y análisis de prioridades</p><p>Preparación de reuniones y actas</p><p>Redacción de correos y documentos</p><p>Lectura contextual de tareas, agenda y notas</p></div>
+            <div className="panel assistant-note"><Sparkles size={17}/><strong>Datos y privacidad</strong><p>El contenido se envía al modelo para generar la respuesta. La clave de OpenAI permanece en el servidor. Las conversaciones no se guardan en una base de datos por ahora.</p></div>
+          </aside></div>}
+        </section>}}
       </div>
     </main>
     <nav className="mobile-nav">{nav.map(item=>{const Icon=item.icon;return <button key={item.label} className={active===item.label?'mobile-active':''} onClick={()=>setPage(item.label)}><Icon size={19}/><span>{item.label==='Resumen'?'Inicio':item.label}</span></button>})}</nav>
