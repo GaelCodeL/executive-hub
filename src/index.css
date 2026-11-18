@@ -1217,7 +1217,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* Unique colors for each detailed presence state */
 .presence-dot.call{background:#8b5cf6}
-.presence-dot.preparing{background:#0d9488}
+.presence-dot.preparing{background:#d97706}
 .presence-dot.installation{background:#2563eb}
 .presence-dot.away{background:#ea580c}
 
@@ -1226,7 +1226,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .org-person-tile:has(.presence-dot.available)>em{background:#e8f6ee;color:#167447;border-color:#c8ead7}
 .org-person-tile:has(.presence-dot.busy)>em{background:#fff0f1;color:#b83240;border-color:#f5d0d4}
 .org-person-tile:has(.presence-dot.call)>em{background:#f3edff;color:#7041b5;border-color:#dfd1fa}
-.org-person-tile:has(.presence-dot.preparing)>em{background:#e6f7f5;color:#08796f;border-color:#c6eae5}
+.org-person-tile:has(.presence-dot.preparing)>em{background:#fff5df;color:#995b08;border-color:#f1d9a8}
 .org-person-tile:has(.presence-dot.installation)>em{background:#eaf2ff;color:#2459a6;border-color:#d0e0fb}
 .org-person-tile:has(.presence-dot.away)>em{background:#fff3e7;color:#a85a13;border-color:#f5ddc4}
 .org-person-tile:has(.presence-dot.offline)>em{background:#f0f1f3;color:#626b78;border-color:#dfe2e7}
