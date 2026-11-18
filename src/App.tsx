@@ -429,12 +429,12 @@ function App() {
           {!isSupabaseConfigured || !supabase ? <div className="panel assistant-auth"><strong>Conexión pendiente</strong><p>La configuración segura de Supabase todavía no está disponible.</p></div> : <div className="assistant-workspace"><div className="panel assistant-chat">
             <div className="assistant-chat-head"><div><strong>Conversación con EXECUTIVE COPILOT</strong><span>Google Gemini · Gemini 2.5 Flash · contexto de tu workspace</span></div></div>
             <div className="assistant-suggestions">
-              <button onClick={()=>setPage('Resumen')}>✦ Briefing ejecutivo <ArrowRight size={12}/></button>
-              <button onClick={()=>setPage('Tareas')}>Prioridades <ArrowRight size={12}/></button>
-              <button onClick={()=>setPage('Agenda')}>Mi agenda <ArrowRight size={12}/></button>
-              <button onClick={()=>setPage('Reuniones')}>Preparar reuniones <ArrowRight size={12}/></button>
-              <button onClick={()=>setPage('Tareas')}>Riesgos y vencimientos <ArrowRight size={12}/></button>
-              <button onClick={()=>setPage('Resumen')}>Progreso <ArrowRight size={12}/></button>
+              <button onClick={()=>submitAssistantQuestion('Prepara mi briefing ejecutivo de hoy.')}>✦ Briefing ejecutivo</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza mis prioridades y dime qué debería resolver primero.')}>Prioridades</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza mi agenda de esta semana y detecta conflictos.')}>Mi agenda</button>
+              <button onClick={()=>submitAssistantQuestion('Prepara mis próximas reuniones con objetivos y decisiones pendientes.')}>Preparar reuniones</button>
+              <button onClick={()=>submitAssistantQuestion('Detecta riesgos, retrasos y tareas vencidas.')}>Riesgos y vencimientos</button>
+              <button onClick={()=>submitAssistantQuestion('Analiza el progreso general del workspace.')}>Progreso</button>
             </div>
             <div className="assistant-conversation">{assistantMessages.length ? assistantMessages.map((m,i)=><div key={i} className={m.role==='user'?'assistant-user-message':'assistant-reply'}>{m.role==='assistant'&&<Sparkles size={16}/>}<div>{m.content.split('\n').map((line,j)=><p key={j}>{line || '\u00a0'}</p>)}</div></div>) : <div className="assistant-empty"><Sparkles size={22}/><strong>¿Qué necesitas resolver?</strong><span>Haz cualquier pregunta. El modelo puede razonar sobre tus datos y ayudarte con tareas ejecutivas.</span></div>}{assistantLoading&&<div className="assistant-reply"><Sparkles size={16}/><div><p>Analizando el contexto y preparando una respuesta…</p></div></div>}{assistantError&&<div className="assistant-error">{assistantError}</div>}</div>
             <form className="assistant-input-row" onSubmit={e=>{e.preventDefault();submitAssistantQuestion(assistantQuestion)}}><input value={assistantQuestion} onChange={e=>setAssistantQuestion(e.target.value)} placeholder="Pregunta lo que necesites…" disabled={assistantLoading}/><button type="submit" aria-label="Enviar consulta" disabled={assistantLoading||!assistantQuestion.trim()}><ArrowRight size={18}/></button></form>
