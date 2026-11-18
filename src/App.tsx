@@ -21,22 +21,22 @@ const dateInput = (value: string) => { if (!value) return ''; const d = new Date
 const timeInput = (value: string) => value ? new Date(value).toTimeString().slice(0, 5) : ''
 const uid = () => crypto.randomUUID()
 const seed: Store = {
-  displayName: 'Gael', theme: 'light',
+  displayName: 'Germán', theme: 'light',
   tasks: [
-    { id: 't1', title: 'Revisar propuesta comercial Q4', description: '', project: 'Dirección · Comercial', dueAt: localDateTime(today(), '12:30'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
-    { id: 't2', title: 'Validar presupuesto de tecnología', description: '', project: 'Finanzas · Operaciones', dueAt: localDateTime(today(), '15:00'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
-    { id: 't3', title: 'Enviar feedback a equipo de producto', description: '', project: 'Producto', dueAt: localDateTime(today(), '10:00'), priority: 'medium', status: 'in_progress', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Revisar propuesta comercial Q4', description: '', project: 'Dirección · Comercial', dueAt: localDateTime(today(), '12:30'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Validar presupuesto de tecnología', description: '', project: 'Finanzas · Operaciones', dueAt: localDateTime(today(), '15:00'), priority: 'high', status: 'pending', createdAt: new Date().toISOString() },
+    { id: uid(), title: 'Enviar feedback a equipo de producto', description: '', project: 'Producto', dueAt: localDateTime(today(), '10:00'), priority: 'medium', status: 'in_progress', createdAt: new Date().toISOString() },
   ],
   events: [
-    { id: 'e1', title: 'Revisión de prioridades', description: 'Con dirección', location: 'Sala principal', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), type: 'meeting', allDay: false },
-    { id: 'e2', title: 'Bloque de trabajo estratégico', description: 'Planificación Q1', location: '', startsAt: localDateTime(today(), '11:00'), endsAt: localDateTime(today(), '12:30'), type: 'focus', allDay: false },
-    { id: 'e3', title: 'Seguimiento comercial', description: 'Con equipo comercial', location: 'Teams', startsAt: localDateTime(today(), '13:00'), endsAt: localDateTime(today(), '13:45'), type: 'meeting', allDay: false },
+    { id: uid(), title: 'Revisión de prioridades', description: 'Con dirección', location: 'Sala principal', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), type: 'meeting', allDay: false },
+    { id: uid(), title: 'Bloque de trabajo estratégico', description: 'Planificación Q1', location: '', startsAt: localDateTime(today(), '11:00'), endsAt: localDateTime(today(), '12:30'), type: 'focus', allDay: false },
+    { id: uid(), title: 'Seguimiento comercial', description: 'Con equipo comercial', location: 'Teams', startsAt: localDateTime(today(), '13:00'), endsAt: localDateTime(today(), '13:45'), type: 'meeting', allDay: false },
   ],
   meetings: [
-    { id: 'm1', title: 'Comité de dirección', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), location: 'Sala principal', attendees: 'Dirección', summary: 'Revisión de prioridades y seguimiento de objetivos.', agreements: 'Validar prioridades del trimestre y revisar avances en la próxima reunión.' },
+    { id: uid(), title: 'Comité de dirección', startsAt: localDateTime(today(), '09:30'), endsAt: localDateTime(today(), '10:00'), location: 'Sala principal', attendees: 'Dirección', summary: 'Revisión de prioridades y seguimiento de objetivos.', agreements: 'Validar prioridades del trimestre y revisar avances en la próxima reunión.' },
   ],
   notes: [
-    { id: 'n1', title: 'Ideas para Q1', content: 'Revisar objetivos estratégicos, presupuesto y capacidad del equipo.', pinned: true, updatedAt: new Date().toISOString() },
+    { id: uid(), title: 'Ideas para Q1', content: 'Revisar objetivos estratégicos, presupuesto y capacidad del equipo.', pinned: true, updatedAt: new Date().toISOString() },
   ],
 }
 function loadStore(): Store {
@@ -143,13 +143,74 @@ function App() {
   const [assistantLoading, setAssistantLoading] = useState(false)
   const [assistantError, setAssistantError] = useState('')
   const [authSession, setAuthSession] = useState<Session | null>(null)
+  const [cloudReady,setCloudReady] = useState(false)
+  const [cloudError,setCloudError] = useState('')
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
   const [authLoading, setAuthLoading] = useState(false)
 
-  useEffect(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)) } catch { setToast('No se ha podido guardar en este dispositivo') } }, [store])
-  useEffect(() => { if (!supabase) return; supabase.auth.getSession().then(({data}) => setAuthSession(data.session)); const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session) => setAuthSession(session)); return () => subscription.unsubscribe() }, [])
+  useEffect(() => { if (!supabase) return; let alive = true; supabase.auth.getSession().then(({data}) => { if (alive) setAuthSession(data.session) }); const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session) => { setCloudReady(false); setAuthSession(session) }); return () => { alive=false; subscription.unsubscribe() } }, [])
+  useEffect(() => {
+    if (!supabase || !authSession) { setCloudReady(false); return }
+    let alive = true
+    const client = supabase as any
+    const userId = authSession.user.id
+    const guest = Boolean(authSession.user.is_anonymous)
+    const load = async () => {
+      try {
+        const [profileRes,tasksRes,eventsRes,meetingsRes,notesRes] = await Promise.all([
+          client.from('profiles').select('*').eq('id',userId).maybeSingle(),
+          client.from('tasks').select('*').eq('user_id',userId),
+          client.from('calendar_events').select('*').eq('user_id',userId),
+          client.from('meetings').select('*').eq('user_id',userId),
+          client.from('notes').select('*').eq('user_id',userId),
+        ])
+        for (const result of [profileRes,tasksRes,eventsRes,meetingsRes,notesRes]) if (result.error) throw result.error
+        const displayName = profileRes.data?.display_name || authSession.user.user_metadata?.display_name || 'Germán'
+        const hasCloudData = tasksRes.data.length + eventsRes.data.length + meetingsRes.data.length + notesRes.data.length > 0
+        const nextStore: Store = hasCloudData || !guest ? {
+          displayName, theme: profileRes.data?.theme === 'dark' ? 'dark' : 'light',
+          tasks: (tasksRes.data || []).map((t:any)=>({id:t.id,title:t.title,description:t.description||'',project:t.project||'',dueAt:t.due_at||'',priority:t.priority,status:t.status,createdAt:t.created_at})),
+          events: (eventsRes.data || []).map((e:any)=>({id:e.id,title:e.title,description:e.description||'',location:e.location||'',startsAt:e.starts_at,endsAt:e.ends_at,type:e.event_type,allDay:e.all_day})),
+          meetings: (meetingsRes.data || []).map((m:any)=>({id:m.id,title:m.title,startsAt:m.starts_at||'',endsAt:m.ends_at||'',location:m.location||'',attendees:m.attendees||'',summary:m.summary||'',agreements:m.agreements||''})),
+          notes: (notesRes.data || []).map((n:any)=>({id:n.id,title:n.title,content:n.content,pinned:n.pinned,updatedAt:n.updated_at})),
+        } : {...seed,displayName:'Germán'}
+        const {error:profileError}=await client.from('profiles').upsert({id:userId,display_name:displayName,theme:nextStore.theme,timezone:'Europe/Madrid'},{onConflict:'id'})
+        if(profileError) throw profileError
+        if (alive) { setStore(nextStore); setSettingsName(nextStore.displayName); setSettingsTheme(nextStore.theme); setCloudReady(true) }
+      } catch (error) { if(alive) { setCloudError(error instanceof Error ? error.message : 'No se han podido cargar los datos'); setCloudReady(false) } }
+    }
+    void load()
+    return () => { alive=false }
+  }, [authSession?.user.id])
+  useEffect(() => {
+    if (!supabase || !authSession || !cloudReady) return
+    const client = supabase as any
+    const userId = authSession.user.id
+    const timer = window.setTimeout(async () => {
+      try {
+        const operations = [
+          ['tasks',store.tasks.map(t=>({id:t.id,user_id:userId,title:t.title,description:t.description,project:t.project,priority:t.priority,status:t.status,due_at:t.dueAt||null,created_at:t.createdAt||new Date().toISOString()}))],
+          ['calendar_events',store.events.map(e=>({id:e.id,user_id:userId,title:e.title,description:e.description,location:e.location,starts_at:e.startsAt,ends_at:e.endsAt,all_day:e.allDay,event_type:e.type}))],
+          ['meetings',store.meetings.map(m=>({id:m.id,user_id:userId,title:m.title,starts_at:m.startsAt||null,ends_at:m.endsAt||null,location:m.location,attendees:m.attendees,summary:m.summary,agreements:m.agreements||''}))],
+          ['notes',store.notes.map(n=>({id:n.id,user_id:userId,title:n.title,content:n.content,pinned:n.pinned,updated_at:n.updatedAt||new Date().toISOString()}))],
+        ] as [string,any[]][]
+        for (const [table,rows] of operations) {
+          if (rows.length) { const {error}=await client.from(table).upsert(rows,{onConflict:'id'}); if(error) throw error }
+          const ids=rows.map(row=>row.id)
+          let deletion=client.from(table).delete().eq('user_id',userId)
+          if(ids.length) deletion=deletion.not('id','in',`(${ids.join(',')})`)
+          const {error}=await deletion
+          if(error) throw error
+        }
+        const {error:profileError}=await client.from('profiles').upsert({id:userId,display_name:store.displayName||'Germán',theme:store.theme,timezone:'Europe/Madrid'},{onConflict:'id'})
+        if(profileError) throw profileError
+        setCloudError('')
+      } catch(error) { setCloudError(error instanceof Error ? error.message : 'No se han podido sincronizar los cambios') }
+    },500)
+    return () => window.clearTimeout(timer)
+  }, [store,authSession?.user.id,cloudReady])
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(''), 2600); return () => window.clearTimeout(timer) } }, [toast])
   useEffect(() => { document.documentElement.style.colorScheme = store.theme }, [store.theme])
   useEffect(() => {
@@ -262,7 +323,7 @@ function App() {
     setAuthLoading(true); setAssistantError('')
     try {
       if (authMode === 'signup') {
-        const {error} = await supabase.auth.signUp({email:authEmail.trim(),password:authPassword})
+        const {error} = await supabase.auth.signUp({email:authEmail.trim(),password:authPassword,options:{data:{display_name:'Germán'}}})
         if (error) throw error
         setAssistantError('Cuenta creada. Si la confirmación por correo está activada, revisa tu bandeja de entrada y confirma el registro.')
       } else {
@@ -272,7 +333,8 @@ function App() {
     } catch(error) { setAssistantError(error instanceof Error ? error.message : 'No se ha podido iniciar sesión.') }
     finally { setAuthLoading(false) }
   }
-  const signOutApp = async () => { if(supabase) await supabase.auth.signOut(); setAssistantMessages([]); setAssistantError('') }
+  const signOutApp = async () => { if(supabase) await supabase.auth.signOut(); setAssistantMessages([]); setAssistantError(''); setStore({...seed,displayName:'Germán'}) }
+  const enterAsGuest = async () => { if(!supabase) return; setAuthLoading(true); setAssistantError(''); try { const {error}=await supabase.auth.signInAnonymously({options:{data:{display_name:'Germán'}}}); if(error) throw error } catch(error) { setAssistantError(error instanceof Error ? error.message : 'No se ha podido iniciar como invitado') } finally { setAuthLoading(false) } }
     const toggleTask = (id: string) => save({ ...store, tasks: tasks.map(t => t.id === id ? { ...t, status: t.status === 'pending' ? 'in_progress' : t.status === 'in_progress' ? 'completed' : 'pending' } : t) })
   const removeTask = (id: string) => { if (confirm('¿Eliminar esta tarea?')) { save({ ...store, tasks: tasks.filter(t => t.id !== id) }); setToast('Tarea eliminada') } }
   const openEventEditor = (event?: EventItem) => { setEditingEventId(event?.id || null); setEventDraft(event ? { title: event.title, description: event.description, location: event.location, date: dateInput(event.startsAt), start: timeInput(event.startsAt), end: timeInput(event.endsAt), type: event.type } : blankEvent()); setEventForm(true) }
@@ -307,7 +369,8 @@ function App() {
   const field = (label: string, child: React.ReactNode) => <label className="field"><span>{label}</span>{child}</label>
   const modal = (title: string, close: () => void, body: React.ReactNode, submit: () => void, submitLabel: string) => <div className="modal-backdrop" onClick={close}><div className="task-modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" onClick={e => e.stopPropagation()}><div className="modal-head"><div><span className="eyebrow">EXECUTIVE HUB</span><h2 id="dialog-title">{title}</h2></div><div className="modal-head-actions"><button className="modal-done" onClick={()=>{(document.activeElement as HTMLElement | null)?.blur()}}>Listo <Check size={14}/></button><button className="icon-button" aria-label="Cerrar ventana" onClick={close}><X size={18}/></button></div></div>{body}<div className="modal-actions"><button className="secondary-button" onClick={close}>Cancelar</button><button className="primary-button" onClick={submit}><Save size={14}/>{submitLabel}</button></div></div></div>
 
-  if (isSupabaseConfigured && supabase && !authSession) return <div className="app-shell"><main className="main-area" style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24}}><section className="panel assistant-auth" style={{width:'min(440px,100%)'}}><div className="brand" style={{marginBottom:28}}><div className="brand-mark"><Command size={19}/></div><div><strong>EXECUTIVE<span>HUB</span></strong><small>YOUR DAY. UNDER CONTROL.</small></div></div><div className="eyebrow">ACCESO AL WORKSPACE</div><h1 style={{margin:'10px 0'}}>Tu espacio de dirección.</h1><p>Inicia sesión para acceder a EXECUTIVE HUB y a todas sus herramientas, incluido EXECUTIVE COPILOT.</p><form onSubmit={e=>{e.preventDefault();signInApp()}} className="assistant-auth-form"><input type="email" required value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Correo electrónico"/><input type="password" required minLength={8} value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Contraseña (mín. 8 caracteres)"/><button className="primary-button" disabled={authLoading}>{authLoading?'Accediendo…':authMode==='login'?'Iniciar sesión':'Crear cuenta'}</button></form><button className="text-button" onClick={()=>{setAuthMode(authMode==='login'?'signup':'login');setAssistantError('')}}>{authMode==='login'?'¿No tienes cuenta? Crear cuenta':'Ya tengo cuenta · Iniciar sesión'}</button>{assistantError&&<p className="assistant-error">{assistantError}</p>}</section></main></div>;
+  if (isSupabaseConfigured && supabase && !authSession) return <div className="app-shell"><main className="main-area" style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24}}><section className="panel assistant-auth" style={{width:'min(440px,100%)'}}><div className="brand" style={{marginBottom:28}}><div className="brand-mark"><Command size={19}/></div><div><strong>EXECUTIVE<span>HUB</span></strong><small>YOUR DAY. UNDER CONTROL.</small></div></div><div className="eyebrow">ACCESO AL WORKSPACE</div><h1 style={{margin:'10px 0'}}>Tu espacio de dirección.</h1><p>Inicia sesión para acceder a EXECUTIVE HUB y a todas sus herramientas, incluido EXECUTIVE COPILOT.</p><form onSubmit={e=>{e.preventDefault();signInApp()}} className="assistant-auth-form"><input type="email" required value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Correo electrónico"/><input type="password" required minLength={8} value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Contraseña (mín. 8 caracteres)"/><button className="primary-button" disabled={authLoading}>{authLoading?'Accediendo…':authMode==='login'?'Iniciar sesión':'Crear cuenta'}</button></form><button className="text-button" onClick={()=>{setAuthMode(authMode==='login'?'signup':'login');setAssistantError('')}}>{authMode==='login'?'¿No tienes cuenta? Crear cuenta':'Ya tengo cuenta · Iniciar sesión'}</button><button className="secondary-button" style={{width:'100%',marginTop:12}} disabled={authLoading} onClick={enterAsGuest}>Entrar como invitado</button>{assistantError&&<p className="assistant-error">{assistantError}</p>}</section></main></div>;
+  if (authSession && !cloudReady) return <div className="app-shell"><main className="main-area" style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24}}><section className="panel assistant-auth"><strong>Preparando tu workspace…</strong><p>Conectando tu sesión y cargando tus datos.</p>{cloudError&&<p className="assistant-error">{cloudError}</p>}<button className="text-button" onClick={signOutApp}>Cerrar sesión</button></section></main></div>;
   if (!isSupabaseConfigured || !supabase) return <div className="app-shell"><main className="main-area" style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24}}><section className="panel assistant-auth"><strong>Configuración pendiente</strong><p>EXECUTIVE HUB no puede iniciar el acceso seguro porque falta la configuración de Supabase.</p></section></main></div>;
   return <div className={`app-shell ${store.theme === 'dark' ? 'dark' : ''}`}>
     <aside className={`sidebar ${mobileMenu ? 'mobile-open' : ''}`}>
@@ -316,7 +379,7 @@ function App() {
       <nav>{nav.map(item => { const Icon = item.icon; return <button key={item.label} className={`nav-item ${active === item.label ? 'selected' : ''}`} onClick={() => setPage(item.label)}><Icon size={18}/><span>{item.label}</span>{item.label === 'Tareas' && <em>{pending}</em>}</button> })}</nav>
       <div className="sidebar-bottom"><div className="sidebar-tip"><div className="tip-icon"><Sparkles size={16}/></div><strong>Un día más enfocado.</strong><p>Tu espacio para pensar, decidir y avanzar.</p><button onClick={() => setPage('Asistente')}>Explorar asistente <ArrowRight size={13}/></button></div>
         <button className={`nav-item ${active === 'Preferencias' ? 'selected' : ''}`} onClick={() => setPage('Preferencias')}><Settings2 size={18}/><span>Preferencias</span></button>
-        <div className="profile"><div className="avatar">{store.displayName.slice(0,2).toUpperCase()}</div><div className="profile-info"><strong>{store.displayName}</strong><small>Executive workspace</small></div><MoreHorizontal size={18}/></div>
+        <div className="profile"><div className="avatar">{store.displayName.slice(0,2).toUpperCase()}</div><div className="profile-info"><strong>{store.displayName}</strong><small>{authSession?.user.is_anonymous?'Sesión de invitado':'Cuenta registrada'}</small></div><button className="icon-button" title="Cerrar sesión" onClick={signOutApp}><LogOut size={16}/></button></div>
       </div>
     </aside>
     <main className="main-area">
