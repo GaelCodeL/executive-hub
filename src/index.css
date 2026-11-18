@@ -958,3 +958,64 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  .assistant-md-list-item{font-size:12px;gap:7px}
  .assistant-user-message{font-size:13px}
 }
+
+
+/* Organization workspace */
+.organization-page{display:grid;gap:18px}
+.org-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.org-stat{padding:16px 18px;display:grid;gap:8px}
+.org-stat span{font-size:11px;color:var(--muted)}
+.org-stat strong{font:700 25px/1 Manrope,Inter,sans-serif;color:var(--text)}
+.org-own-status{display:grid;grid-template-columns:minmax(170px,1fr) 190px minmax(180px,1.2fr);gap:12px;align-items:center;padding:16px}
+.org-own-status>div{display:grid;gap:4px}
+.org-own-status>div strong{font-size:13px}
+.org-own-status>div small{font-size:10px;color:var(--muted)}
+.org-own-status select,.org-own-status input,.org-team-task select,.org-assign input{height:38px;min-width:0;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:var(--surface);color:var(--text);font:12px 'DM Sans',sans-serif}
+.org-section-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-top:5px}
+.org-section-heading h2{font:700 18px/1.3 Manrope,Inter,sans-serif;margin:4px 0}
+.org-section-heading p{font-size:12px;color:var(--muted);margin:5px 0 0}
+.org-departments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.org-department{padding:0;overflow:hidden}
+.org-department>header{padding:14px 16px;border-bottom:1px solid var(--line)}
+.org-department>header>div{display:flex;align-items:center;gap:10px}
+.org-department-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--soft);color:var(--blue)}
+.org-department h3{font-size:13px;margin:0 0 3px}
+.org-department header small{font-size:10px;color:var(--muted)}
+.org-people{padding:4px 14px}
+.org-person{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.org-person:last-child{border-bottom:0}
+.org-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--blue);font-size:11px;font-weight:800}
+.org-person-main{min-width:0;display:grid;gap:3px}
+.org-person-main strong{font-size:12px}
+.org-person-main>span{font-size:10px;color:var(--muted)}
+.org-person-main small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.org-status{display:flex;align-items:center;gap:5px}
+.org-status:before{content:'';width:6px;height:6px;border-radius:50%;background:#7c9a87;display:inline-block;flex:0 0 auto}
+.org-status-en-llamada:before,.org-status-en-instalación:before,.org-status-trabajando:before,.org-status-preparando-pedido:before{background:#4778cf}
+.org-status-descanso:before{background:#d69a42}
+.org-status-ausente:before{background:#c76b6b}
+.org-you{font-size:8px;font-weight:800;letter-spacing:.7px;color:var(--blue);background:var(--soft);padding:4px 6px;border-radius:5px}
+.org-manager{grid-column:2/-1;color:var(--muted);font-size:9px}
+.org-assign{grid-column:2/-1;display:flex;gap:7px;margin-top:3px}
+.org-assign input{flex:1}
+.org-assign .secondary-button{font-size:10px;padding:0 11px}
+.org-empty{padding:14px 16px;color:var(--muted);font-size:11px;margin:0}
+.org-team-tasks{padding:5px 16px}
+.org-team-task{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.org-team-task:last-child{border-bottom:0}
+.org-team-task>div{display:grid;gap:4px;min-width:0}
+.org-team-task strong{font-size:12px}
+.org-team-task span,.org-team-task small{font-size:10px;color:var(--muted)}
+.org-team-task select{width:130px}
+.org-onboarding{padding:20px;display:grid;gap:16px}
+.org-onboarding .org-section-heading{margin:0}
+.org-onboarding .org-section-heading>svg{color:var(--blue)}
+.org-onboarding>.muted-small{margin:0}
+.assistant-reply{font-size:12px;line-height:1.65}
+.assistant-markdown{font-size:12px;line-height:1.65}
+.assistant-md-paragraph{font-size:12px!important;line-height:1.65!important}
+.assistant-md-heading{font-size:14px;line-height:1.35;margin:14px 0 7px}
+.assistant-md-list-item{font-size:11.5px;line-height:1.6;margin:4px 0}
+.assistant-user-message{font-size:11.5px;line-height:1.55}
+@media(max-width:900px){.org-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.org-departments{grid-template-columns:1fr}}
+@media(max-width:600px){.org-own-status{grid-template-columns:1fr}.org-team-task{align-items:flex-start;flex-direction:column}.org-team-task select{width:100%}.org-section-heading{align-items:flex-start;flex-direction:column}}
