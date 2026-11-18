@@ -1287,3 +1287,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .mobile-nav button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .app-shell{padding-bottom:calc(62px + env(safe-area-inset-bottom))}
 }
+
+
+/* iPhone: keep meeting date and time on one compact line */
+@media(max-width:760px){
+  .meeting-date-block{
+    flex-direction:row;
+    align-items:center;
+    flex-wrap:nowrap;
+    gap:10px;
+    width:max-content;
+    max-width:calc(100% - 92px);
+    min-width:0;
+    padding:9px 11px;
+  }
+  .meeting-date-block strong,
+  .meeting-date-block span{white-space:nowrap}
+}
