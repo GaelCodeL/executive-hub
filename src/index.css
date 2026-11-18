@@ -1215,3 +1215,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  .top-actions{gap:7px}
  .presence-popover{right:-35px}
 }
+
+/* Unique colors for each detailed presence state */
+.presence-dot.call{background:#8b5cf6}
+.presence-dot.preparing{background:#0d9488}
+.presence-dot.installation{background:#2563eb}
+.presence-dot.break{background:#d97706}
+.presence-dot.away{background:#ea580c}
