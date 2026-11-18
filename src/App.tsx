@@ -330,7 +330,7 @@ function App() {
             <div className="panel"><div className="eyebrow">PULSO DEL WORKSPACE</div><div className="assistant-context-row"><span>Tareas abiertas</span><strong>{pending}</strong></div><div className="assistant-context-row"><span>Prioridad alta</span><strong>{tasks.filter(t=>t.status!=='completed'&&t.priority==='high').length}</strong></div><div className="assistant-context-row"><span>Vencidas</span><strong className={overdue?'assistant-risk':''}>{overdue}</strong></div><div className="assistant-context-row"><span>Eventos hoy</span><strong>{todayEvents.length}</strong></div><div className="assistant-context-row"><span>Notas guardadas</span><strong>{store.notes.length}</strong></div></div>
             <div className="panel assistant-guide"><div className="eyebrow">PRUEBA A PREGUNTAR</div><p>«¿Qué está bloqueando mi semana?»</p><p>«Resume las decisiones del comité»</p><p>«Busca la nota de presupuesto»</p><p>«Añade tarea: revisar propuesta»</p></div>
             <div className="panel assistant-note"><Sparkles size={17}/><strong>Privacidad y alcance</strong><p>Esta versión analiza los datos del dispositivo mediante lógica contextual. No es todavía un modelo generativo conectado; no inventa respuestas ni envía información fuera del navegador.</p></div>
-          </aside></div></section>}}
+          </aside></div></section>}
       </div>
     </main>
     <nav className="mobile-nav">{nav.map(item=>{const Icon=item.icon;return <button key={item.label} className={active===item.label?'mobile-active':''} onClick={()=>setPage(item.label)}><Icon size={19}/><span>{item.label==='Resumen'?'Inicio':item.label}</span></button>})}</nav>
