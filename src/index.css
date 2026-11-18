@@ -1019,3 +1019,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .assistant-user-message{font-size:11.5px;line-height:1.55}
 @media(max-width:900px){.org-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.org-departments{grid-template-columns:1fr}}
 @media(max-width:600px){.org-own-status{grid-template-columns:1fr}.org-team-task{align-items:flex-start;flex-direction:column}.org-team-task select{width:100%}.org-section-heading{align-items:flex-start;flex-direction:column}}
+
+.org-manager-select{grid-column:2/-1;display:flex;align-items:center;gap:8px}
+.org-manager-select label{font-size:9px;color:var(--muted)}
+.org-manager-select select{height:30px;min-width:0;flex:1;border:1px solid var(--line);border-radius:7px;padding:0 8px;background:var(--surface);color:var(--text);font:10px 'DM Sans',sans-serif}
