@@ -372,11 +372,11 @@ function App() {
       .filter(section => section.label.toLocaleLowerCase('es').includes(q))
       .map(section => ({ label: section.label, detail: 'Sección de EXECUTIVE HUB', go: section.label }))
   }, [query])
-  const displayOrgMembers = guestMode ? DEMO_ORG_MEMBERS : orgMembers
-  const displayOrgTasks = guestMode ? DEMO_ORG_TASKS : orgTasks
-  const myOrgMember = orgMembers.find(member => member.user_id === authSession?.user.id)
-  const canManageOrg = Boolean(myOrgMember?.is_org_admin)
-  const canManageMember = (member: OrgMember) => canManageOrg || member.manager_user_id === authSession?.user.id
+  const displayOrgMembers = orgMembers
+  const displayOrgTasks = orgTasks
+  const myOrgMember = guestMode ? orgMembers.find(member => member.id === 'demo-german') : orgMembers.find(member => member.user_id === authSession?.user.id)
+  const canManageOrg = guestMode || Boolean(myOrgMember?.is_org_admin)
+  const canManageMember = (member: OrgMember) => guestMode || canManageOrg || member.manager_user_id === authSession?.user.id
   const registerOrgProfile = async () => {
     if (!supabase || !authSession || authSession.user.is_anonymous) return
     const {error} = await (supabase as any).from('organization_members').insert({
@@ -389,32 +389,56 @@ function App() {
     setOrgMembers(data || [])
   }
   const updateOrgManager = async (member: OrgMember, manager_user_id: string) => {
-    if (!supabase || !canManageOrg || member.user_id === authSession?.user.id) return
+    if (!canManageOrg || member.id === myOrgMember?.id) return
+    if (guestMode) {
+      setOrgMembers(current => current.map(item => item.id===member.id ? {...item,manager_user_id:manager_user_id || null} : item))
+      setToast('Responsable actualizado en la demo')
+      return
+    }
+    if (!supabase) return
     const {error} = await (supabase as any).from('organization_members').update({manager_user_id:manager_user_id || null}).eq('id',member.id)
     if (error) { setToast(error.message); return }
     setOrgMembers(current => current.map(item => item.id===member.id ? {...item,manager_user_id:manager_user_id || null} : item))
     setToast('Responsable actualizado')
   }
-  const updateMyOrgStatus = async (status: string, status_note = '') => {
-    if (!supabase || !myOrgMember) return
-    const {error} = await (supabase as any).from('organization_members').update({status,status_note,status_updated_at:new Date().toISOString()}).eq('id',myOrgMember.id)
+  const updateMemberStatus = async (member: OrgMember,status: string,status_note = member.status_note) => {
+    const updatedAt = new Date().toISOString()
+    if (guestMode) {
+      setOrgMembers(current => current.map(item => item.id===member.id ? {...item,status,status_note,status_updated_at:updatedAt} : item))
+      return
+    }
+    if (!supabase || !(member.user_id === authSession?.user.id || canManageMember(member))) return
+    const {error} = await (supabase as any).from('organization_members').update({status,status_note,status_updated_at:updatedAt}).eq('id',member.id)
     if (error) { setToast(error.message); return }
-    setOrgMembers(current => current.map(member => member.id === myOrgMember.id ? {...member,status,status_note,status_updated_at:new Date().toISOString()} : member))
+    setOrgMembers(current => current.map(item => item.id===member.id ? {...item,status,status_note,status_updated_at:updatedAt} : item))
+  }
+  const updateMyOrgStatus = async (status: string, status_note = '') => {
+    if (!myOrgMember) return
+    await updateMemberStatus(myOrgMember,status,status_note)
   }
   const assignOrgTask = async (member: OrgMember) => {
-    if (!supabase || !authSession || !canManageMember(member) || !member.user_id) return
+    if (!canManageMember(member) || (!guestMode && (!supabase || !authSession || !member.user_id))) return
     const draft = orgTaskDrafts[member.id] || {title:'',description:'',due_at:''}
     if (!draft.title.trim()) return
-    const {data,error} = await (supabase as any).from('organization_tasks').insert({
-      title:draft.title.trim(),description:draft.description.trim(),assigned_to:member.user_id,
-      assigned_by:authSession.user.id,due_at:draft.due_at ? new Date(draft.due_at).toISOString() : null
-    }).select().single()
-    if (error) { setToast(error.message); return }
-    setOrgTasks(current => [data,...current])
+    if (guestMode) {
+      const demoTask: OrgTask = {id:uid(),title:draft.title.trim(),description:draft.description.trim(),assigned_to:member.id,assigned_by:'demo-german',status:'Pendiente',due_at:draft.due_at ? new Date(draft.due_at).toISOString() : null}
+      setOrgTasks(current => [demoTask,...current])
+    } else {
+      const {data,error} = await (supabase as any).from('organization_tasks').insert({
+        title:draft.title.trim(),description:draft.description.trim(),assigned_to:member.user_id,
+        assigned_by:authSession!.user.id,due_at:draft.due_at ? new Date(draft.due_at).toISOString() : null
+      }).select().single()
+      if (error) { setToast(error.message); return }
+      setOrgTasks(current => [data,...current])
+    }
     setOrgTaskDrafts(current => ({...current,[member.id]:{title:'',description:'',due_at:''}}))
     setToast('Tarea asignada')
   }
   const updateOrgTaskStatus = async (task: OrgTask,status: string) => {
+    if (guestMode) {
+      setOrgTasks(current => current.map(item => item.id===task.id ? {...item,status} : item))
+      return
+    }
     if (!supabase) return
     const {error} = await (supabase as any).from('organization_tasks').update({status,updated_at:new Date().toISOString()}).eq('id',task.id)
     if (error) { setToast(error.message); return }
@@ -473,8 +497,8 @@ function App() {
     } catch(error) { setAssistantError(error instanceof Error ? error.message : 'No se ha podido iniciar sesión.') }
     finally { setAuthLoading(false) }
   }
-  const signOutApp = async () => { if(supabase && authSession) await supabase.auth.signOut(); setGuestMode(false); setGuestSessionId(''); setAssistantMessages([]); setAssistantError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setCloudReady(false) }
-  const enterAsGuest = () => { setGuestSessionId(crypto.randomUUID()); setGuestMode(true); setAuthSession(null); setCloudReady(false); setCloudError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setSettingsTheme('light'); setAssistantMessages([]); setAssistantError(''); setActive('Resumen') }
+  const signOutApp = async () => { if(supabase && authSession) await supabase.auth.signOut(); setGuestMode(false); setGuestSessionId(''); setOrgMembers([]); setOrgTasks([]); setAssistantMessages([]); setAssistantError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setCloudReady(false) }
+  const enterAsGuest = () => { setOrgMembers(DEMO_ORG_MEMBERS.map(member=>({...member}))); setOrgTasks(DEMO_ORG_TASKS.map(task=>({...task}))); setGuestSessionId(crypto.randomUUID()); setGuestMode(true); setAuthSession(null); setCloudReady(false); setCloudError(''); setStore({...seed,displayName:'Germán'}); setSettingsName('Germán'); setSettingsTheme('light'); setAssistantMessages([]); setAssistantError(''); setActive('Resumen') }
     const toggleTask = (id: string) => { const task=tasks.find(t=>t.id===id); if(!task)return; save({ ...store, tasks: tasks.map(t => t.id === id ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' } : t) }); setToast(task.status === 'completed' ? 'Tarea reabierta' : 'Tarea completada') };
    const changeTaskPriority = (id:string, priority:Priority) => save({...store,tasks:tasks.map(t=>t.id===id?{...t,priority}:t)})
   const removeTask = (id: string) => { if (confirm('¿Eliminar esta tarea?')) { save({ ...store, tasks: tasks.filter(t => t.id !== id) }); setToast('Tarea eliminada') } }
@@ -557,10 +581,10 @@ function App() {
           <div className="module-title"><div><div className="eyebrow">PERSONAS Y EQUIPOS</div><h1>Mi organización</h1><p>Organigrama, disponibilidad y trabajo del equipo en tiempo real.</p></div></div>
           {!guestMode && !authSession?.user.is_anonymous && !myOrgMember ? <div className="panel org-onboarding"><div className="org-section-heading"><div><span className="eyebrow">ALTA EN LA ORGANIZACIÓN</span><h2>Completa tu ficha de empleado</h2><p>Tu perfil permitirá que el equipo te encuentre y conozca tu disponibilidad.</p></div><UserPlus size={22}/></div><div className="form-grid">{field('Nombre y apellidos',<input value={orgProfileDraft.full_name} onChange={e=>setOrgProfileDraft({...orgProfileDraft,full_name:e.target.value})} placeholder={store.displayName}/>)}{field('Departamento',<select value={orgProfileDraft.department} onChange={e=>setOrgProfileDraft({...orgProfileDraft,department:e.target.value})}>{ORG_DEPARTMENTS.map(department=><option key={department}>{department}</option>)}</select>)}{field('Puesto',<input value={orgProfileDraft.position} onChange={e=>setOrgProfileDraft({...orgProfileDraft,position:e.target.value})} placeholder="Tu puesto en la empresa"/>)}</div><button className="primary-button" onClick={registerOrgProfile} disabled={!orgProfileDraft.full_name.trim()}>Crear mi ficha</button><p className="muted-small">El alta inicial no concede permisos de dirección ni permite asignar tareas a otros empleados.</p></div> : <>
             {guestMode && <div className="notice-panel"><Sparkles size={16}/><p><strong>Demo corporativa · Germán</strong> Datos ficticios de demostración. Puedes explorar la organización; los cambios no se guardan.</p></div>}<div className="org-overview-grid"><div className="panel org-stat"><span>Personas registradas</span><strong>{displayOrgMembers.length}</strong></div><div className="panel org-stat"><span>Disponibles</span><strong>{displayOrgMembers.filter(m=>m.status==='Disponible').length}</strong></div><div className="panel org-stat"><span>En actividad</span><strong>{displayOrgMembers.filter(m=>['Trabajando','En llamada','Preparando pedido','En instalación'].includes(m.status)).length}</strong></div><div className="panel org-stat"><span>En descanso / ausentes</span><strong>{displayOrgMembers.filter(m=>['Descanso','Ausente'].includes(m.status)).length}</strong></div></div>
-            {!guestMode && myOrgMember && <div className="panel org-own-status"><div><span className="eyebrow">MI ESTADO ACTUAL</span><strong>{myOrgMember.full_name}</strong><small>{myOrgMember.position} · {myOrgMember.department}</small></div><select value={myOrgMember.status} onChange={e=>updateMyOrgStatus(e.target.value,myOrgMember.status_note)}>{ORG_STATUSES.map(status=><option key={status}>{status}</option>)}</select><input aria-label="Detalle de estado" value={myOrgMember.status_note} onChange={e=>setOrgMembers(current=>current.map(m=>m.id===myOrgMember.id?{...m,status_note:e.target.value}:m))} onBlur={e=>updateMyOrgStatus(myOrgMember.status,e.target.value)} placeholder="¿En qué estás trabajando? (opcional)"/></div>}
+            {myOrgMember && <div className="panel org-own-status"><div><span className="eyebrow">MI ESTADO ACTUAL</span><strong>{myOrgMember.full_name}</strong><small>{myOrgMember.position} · {myOrgMember.department}</small></div><select value={myOrgMember.status} onChange={e=>updateMyOrgStatus(e.target.value,myOrgMember.status_note)}>{ORG_STATUSES.map(status=><option key={status}>{status}</option>)}</select><input aria-label="Detalle de estado" value={myOrgMember.status_note} onChange={e=>setOrgMembers(current=>current.map(m=>m.id===myOrgMember.id?{...m,status_note:e.target.value}:m))} onBlur={e=>updateMyOrgStatus(myOrgMember.status,e.target.value)} placeholder="¿En qué estás trabajando? (opcional)"/></div>}
             <div className="org-section-heading"><div><span className="eyebrow">ESTRUCTURA</span><h2>Organigrama por departamentos</h2></div><span className="muted-small">{orgLoading?'Actualizando…':'Estado visible para la organización'}</span></div>
-            <div className="org-departments">{ORG_DEPARTMENTS.map(department=>{const people=displayOrgMembers.filter(m=>m.department===department);return <section className="panel org-department" key={department}><header><div><span className="org-department-icon"><Building2 size={17}/></span><div><h3>{department}</h3><small>{people.length} {people.length===1?'persona':'personas'}</small></div></div></header>{people.length?<div className="org-people">{people.map(member=><article className="org-person" key={member.id}><div className="org-avatar">{member.full_name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}</div><div className="org-person-main"><strong>{member.full_name}</strong><span>{member.position||'Puesto no indicado'}</span><small className={'org-status org-status-'+member.status.toLowerCase().replace(/ /g,'-')}>{member.status}{member.status_note?' · '+member.status_note:''}</small></div>{member.user_id===authSession?.user.id&&<span className="org-you">TÚ</span>}{!guestMode&&canManageOrg&&member.user_id!==authSession?.user.id&&<div className="org-manager-select"><label>Responsable</label><select value={member.manager_user_id||""} onChange={e=>updateOrgManager(member,e.target.value)}><option value="">Sin responsable</option>{orgMembers.filter(person=>person.user_id&&person.user_id!==member.user_id).map(person=><option key={person.user_id!} value={person.user_id!}>{person.full_name}</option>)}</select></div>}{member.manager_user_id&&!canManageOrg&&<small className="org-manager">Responsable asignado</small>}{!guestMode&&canManageMember(member)&&member.user_id&&member.user_id!==authSession?.user.id&&<div className="org-assign"><input placeholder="Nueva tarea para esta persona" value={orgTaskDrafts[member.id]?.title||''} onChange={e=>setOrgTaskDrafts(current=>({...current,[member.id]:{title:e.target.value,description:current[member.id]?.description||'',due_at:current[member.id]?.due_at||''}}))}/><button className="secondary-button" onClick={()=>assignOrgTask(member)}>Asignar</button></div>}</article>)}</div>:<p className="org-empty">Todavía no hay personas registradas en este departamento.</p>}</section>})}</div>
-            <div className="org-section-heading"><div><span className="eyebrow">SEGUIMIENTO</span><h2>Tareas del equipo</h2></div></div><div className="panel org-team-tasks">{displayOrgTasks.length?displayOrgTasks.map(task=>{const assignee=guestMode?displayOrgMembers.find(m=>m.id===task.assigned_to):orgMembers.find(m=>m.user_id===task.assigned_to);return <div className="org-team-task" key={task.id}><div><strong>{task.title}</strong><span>{assignee?.full_name||'Empleado'} · {task.due_at?'Vence '+fmtDate(task.due_at):'Sin fecha límite'}</span>{task.description&&<small>{task.description}</small>}</div><select value={task.status} onChange={e=>updateOrgTaskStatus(task,e.target.value)} disabled={guestMode|| (task.assigned_to!==authSession?.user.id&&task.assigned_by!==authSession?.user.id)}>{['Pendiente','En curso','Bloqueada','Completada'].map(status=><option key={status}>{status}</option>)}</select></div>}):<p className="org-empty">Todavía no hay tareas asignadas dentro de la organización.</p>}</div>
+            <div className="org-departments">{ORG_DEPARTMENTS.map(department=>{const people=displayOrgMembers.filter(m=>m.department===department);return <section className="panel org-department" key={department}><header><div><span className="org-department-icon"><Building2 size={17}/></span><div><h3>{department}</h3><small>{people.length} {people.length===1?'persona':'personas'}</small></div></div></header>{people.length?<div className="org-people">{people.map(member=><article className="org-person" key={member.id}><div className="org-avatar">{member.full_name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}</div><div className="org-person-main"><strong>{member.full_name}</strong><span>{member.position||'Puesto no indicado'}</span><small className={'org-status org-status-'+member.status.toLowerCase().replace(/ /g,'-')}>{member.status}{member.status_note?' · '+member.status_note:''}</small></div>{member.user_id===authSession?.user.id&&<span className="org-you">TÚ</span>}{canManageOrg&&member.id!==myOrgMember?.id&&<div className="org-manager-select"><label>Responsable</label><select value={member.manager_user_id||""} onChange={e=>updateOrgManager(member,e.target.value)}><option value="">Sin responsable</option>{displayOrgMembers.filter(person=>person.id!==member.id).map(person=><option key={person.id} value={person.id}>{person.full_name}</option>)}</select></div>}{member.manager_user_id&&!canManageOrg&&<small className="org-manager">Responsable asignado</small>}{canManageMember(member)&&member.id!==myOrgMember?.id&&<div className="org-assign"><input placeholder="Nueva tarea para esta persona" value={orgTaskDrafts[member.id]?.title||''} onChange={e=>setOrgTaskDrafts(current=>({...current,[member.id]:{title:e.target.value,description:current[member.id]?.description||'',due_at:current[member.id]?.due_at||''}}))}/><button className="secondary-button" onClick={()=>assignOrgTask(member)}>Asignar</button></div>}</article>)}</div>:<p className="org-empty">Todavía no hay personas registradas en este departamento.</p>}</section>})}</div>
+            <div className="org-section-heading"><div><span className="eyebrow">SEGUIMIENTO</span><h2>Tareas del equipo</h2></div></div><div className="panel org-team-tasks">{displayOrgTasks.length?displayOrgTasks.map(task=>{const assignee=guestMode?displayOrgMembers.find(m=>m.id===task.assigned_to):orgMembers.find(m=>m.user_id===task.assigned_to);return <div className="org-team-task" key={task.id}><div><strong>{task.title}</strong><span>{assignee?.full_name||'Empleado'} · {task.due_at?'Vence '+fmtDate(task.due_at):'Sin fecha límite'}</span>{task.description&&<small>{task.description}</small>}</div><select value={task.status} onChange={e=>updateOrgTaskStatus(task,e.target.value)} disabled={!guestMode && (task.assigned_to!==authSession?.user.id&&task.assigned_by!==authSession?.user.id)}>{['Pendiente','En curso','Bloqueada','Completada'].map(status=><option key={status}>{status}</option>)}</select></div>}):<p className="org-empty">Todavía no hay tareas asignadas dentro de la organización.</p>}</div>
           </>}
         </section>}
         {active === 'Notas' && <section className="module-page"><div className="module-title"><div><div className="eyebrow">CONOCIMIENTO Y CONTEXTO</div><h1>Notas</h1><p>Captura ideas, decisiones y puntos importantes.</p></div><button className="primary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}><Plus size={15}/> Nueva nota</button></div><div className="notes-layout"><div className="panel note-editor"><div className="eyebrow">{editingNote?'EDITAR NOTA':'NUEVA NOTA'}</div><input className="note-title-input" value={noteDraft.title} onChange={e=>setNoteDraft({...noteDraft,title:e.target.value})} placeholder="Título de la nota"/><textarea value={noteDraft.content} onChange={e=>setNoteDraft({...noteDraft,content:e.target.value})} placeholder="Escribe aquí tus ideas, decisiones o recordatorios..."/><div className="note-editor-actions"><button className="secondary-button" onClick={()=>{setEditingNote(null);setNoteDraft({title:'',content:''})}}>Limpiar</button><button className="primary-button" onClick={saveNote}><Save size={14}/> Guardar nota</button></div></div><div className="notes-list">{[...store.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)).map(n=><article className="panel note-card" key={n.id}><div className="note-card-head"><strong>{n.title}</strong><div><button className="icon-button" title={n.pinned?'Desfijar':'Fijar'} onClick={()=>togglePin(n.id)}>{n.pinned?<Pin size={15}/>:<PinOff size={15}/>}</button><button className="icon-button" title="Editar" onClick={()=>editNote(n)}><Pencil size={15}/></button><button className="icon-button danger" title="Eliminar" onClick={()=>deleteNote(n.id)}><Trash2 size={15}/></button></div></div><p>{n.content||'Nota vacía'}</p><small>Actualizada {fmtDate(n.updatedAt)}</small></article>)}{!store.notes.length&&<p className="empty-state">Aún no tienes notas guardadas.</p>}</div></div></section>}
