@@ -1230,3 +1230,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .org-person-tile:has(.presence-dot.installation)>em{background:#eaf2ff;color:#2459a6;border-color:#d0e0fb}
 .org-person-tile:has(.presence-dot.away)>em{background:#fff4d6;color:#946200;border-color:#f2d48a}
 .org-person-tile:has(.presence-dot.offline)>em{background:#f0f1f3;color:#626b78;border-color:#dfe2e7}
+
+
+/* Directory person quick-assignment dialog */
+.org-person-modal{width:min(520px,100%);max-height:min(88vh,760px);overflow-y:auto}
+.org-person-modal .modal-head{align-items:flex-start;margin-bottom:12px}
+.org-person-modal .modal-head h2{margin:6px 0 3px}
+.org-person-modal-status{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--soft);font-size:11px;margin:2px 0 18px}
+.org-person-modal-status .presence-dot{width:9px;height:9px;box-shadow:none}
+.org-modal-section-label{margin:0 0 12px}
+.org-person-modal .form-grid{margin-bottom:8px}
+.org-person-modal .form-grid textarea{min-height:70px;resize:vertical}
+.org-permission-note{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--muted);font-size:12px;line-height:1.5}
+.org-permission-note svg{flex:0 0 auto;color:var(--muted)}
+.org-permission-note p{margin:0}
+@media(max-width:600px){.org-person-modal{padding:18px;max-height:90dvh}.org-person-modal .form-grid{grid-template-columns:1fr}}
