@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Publishable project key: safe for browser use. Never put an OpenAI or Supabase secret here.
+const supabaseUrl = 'https://sucjioctxiopwvzbjkwj.supabase.co'
+const supabaseAnonKey = 'sb_publishable_LmT4U6IBCTQGMiHFUW_ntw_gE2MZB2B'
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
