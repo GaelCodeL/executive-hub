@@ -26,24 +26,25 @@ const timeInput = (value: string) => value ? new Date(value).toTimeString().slic
 const uid = () => crypto.randomUUID()
 
 const renderAssistantInline = (value: string) =>
-  value.split(/(\*\*.*?\*\*)/g).filter(Boolean).map((part, index) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={index}>{part.slice(2, -2)}</strong>
-      : <span key={index}>{part}</span>
-  )
+  value.split(/(\\*\\*[^*]+\\*\\*|\\*[^*\\n]+\\*|__[^_]+__)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={index}>{part.slice(2,-2)}</strong>
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={index}>{part.slice(1,-1)}</em>
+    if (part.startsWith('__') && part.endsWith('__')) return <strong key={index}>{part.slice(2,-2)}</strong>
+    return <span key={index}>{part.replace(/^\\*+|\\*+$/g,'')}</span>
+  })
 
 const renderAssistantMarkdown = (content: string) =>
-  content.replace(/\r/g, '').split('\n').map((raw, index) => {
+  content.replace(/\\r/g, '').split('\\n').map((raw, index) => {
     const line = raw.trim()
     if (!line) return <div className="assistant-md-space" key={index}/>
-    const heading = line.match(/^(#{1,3})\s+(.+)$/)
+    const heading = line.match(/^(#{1,3})\\s+(.+)$/)
     if (heading) {
       const Tag = heading[1].length === 1 ? 'h3' : 'h4'
       return <Tag className="assistant-md-heading" key={index}>{renderAssistantInline(heading[2])}</Tag>
     }
-    const bullet = line.match(/^[-*]\s+(.+)$/)
+    const bullet = line.match(/^[-*]\\s+(.+)$/)
     if (bullet) return <div className="assistant-md-list-item" key={index}><span>•</span><div>{renderAssistantInline(bullet[1])}</div></div>
-    const numbered = line.match(/^(\d+)[.)]\s+(.+)$/)
+    const numbered = line.match(/^(\\d+)[.)]\\s+(.+)$/)
     if (numbered) return <div className="assistant-md-list-item" key={index}><span>{numbered[1]}.</span><div>{renderAssistantInline(numbered[2])}</div></div>
     if (/^---+$/.test(line)) return <hr className="assistant-md-divider" key={index}/>
     return <p className="assistant-md-paragraph" key={index}>{renderAssistantInline(line)}</p>
