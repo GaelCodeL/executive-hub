@@ -375,7 +375,7 @@ function App() {
             <div className="panel assistant-guide"><div className="eyebrow">CAPACIDADES</div><p>Conversación abierta y razonamiento</p><p>Briefings y análisis de prioridades</p><p>Preparación de reuniones y actas</p><p>Redacción de correos y documentos</p><p>Lectura contextual de tareas, agenda y notas</p></div>
             <div className="panel assistant-note"><Sparkles size={17}/><strong>Datos y privacidad</strong><p>El contenido de tu workspace se envía a Google Gemini para generar respuestas. La clave permanece en el servidor. En el nivel gratuito de Google, Google puede utilizar los datos enviados para mejorar sus productos. No incluyas información confidencial. Las conversaciones no se guardan en una base de datos por ahora.</p></div>
           </aside></div>}
-        </section>}}
+        </section>}
       </div>
     </main>
     <nav className="mobile-nav">{nav.map(item=>{const Icon=item.icon;return <button key={item.label} className={active===item.label?'mobile-active':''} onClick={()=>setPage(item.label)}><Icon size={19}/><span>{item.label==='Resumen'?'Inicio':item.label}</span></button>})}</nav>
