@@ -30,10 +30,10 @@ const DEMO_ORG_MEMBERS: OrgMember[] = [
  {id:'demo-ricardo',user_id:null,full_name:'Ricardo',email:null,department:'Departamento técnico',position:'Técnico',manager_user_id:'demo-clara',is_org_admin:false,status:'Descanso',status_note:'Pausa',status_updated_at:new Date().toISOString()},
 ]
 const DEMO_ORG_TASKS: OrgTask[] = [
- {id:'demo-task-1',title:'Preparar intervención técnica',description:'Revisar material y confirmar planificación',assigned_to:'demo-gael',assigned_by:'demo-clara',status:'En curso',due_at:null},
- {id:'demo-task-2',title:'Coordinar agenda de técnicos',description:'Confirmar disponibilidad y desplazamientos',assigned_to:'demo-clara',assigned_by:'demo-german',status:'Pendiente',due_at:null},
- {id:'demo-task-3',title:'Seguimiento de propuesta comercial',description:'Contactar con el cliente y actualizar propuesta',assigned_to:'demo-maria',assigned_by:'demo-german',status:'En curso',due_at:null},
- {id:'demo-task-4',title:'Preparar documentación administrativa',description:'Revisar documentación pendiente',assigned_to:'demo-esther',assigned_by:'demo-gloria',status:'Pendiente',due_at:null},
+ {id:'demo-task-1',title:'Preparar intervención técnica',description:'Revisar material y confirmar planificación',assigned_to:'demo-gael',assigned_by:'demo-clara',status:'En curso',due_at:localDateTime(today(),'11:00'),starts_at:localDateTime(today(),'09:00'),ends_at:localDateTime(today(),'11:00')},
+ {id:'demo-task-2',title:'Coordinar agenda de técnicos',description:'Confirmar disponibilidad y desplazamientos',assigned_to:'demo-clara',assigned_by:'demo-german',status:'Pendiente',due_at:localDateTime(today(),'10:00'),starts_at:localDateTime(today(),'09:00'),ends_at:localDateTime(today(),'10:00')},
+ {id:'demo-task-3',title:'Seguimiento de propuesta comercial',description:'Contactar con el cliente y actualizar propuesta',assigned_to:'demo-maria',assigned_by:'demo-german',status:'En curso',due_at:localDateTime(today(),'12:00'),starts_at:localDateTime(today(),'11:00'),ends_at:localDateTime(today(),'12:00')},
+ {id:'demo-task-4',title:'Preparar documentación administrativa',description:'Revisar documentación pendiente',assigned_to:'demo-esther',assigned_by:'demo-gloria',status:'Pendiente',due_at:localDateTime(today(),'13:00'),starts_at:localDateTime(today(),'12:00'),ends_at:localDateTime(today(),'13:00')},
 ]
 const STORE_KEY = 'executive-hub-v2'
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
