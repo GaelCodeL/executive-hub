@@ -232,11 +232,25 @@ function App() {
     Promise.all([
       client.from('organization_members').select('*').order('department').order('full_name'),
       client.from('organization_tasks').select('*').order('created_at',{ascending:false}),
-    ]).then(([members,tasks]) => {
+    ]).then(async ([members,tasks]) => {
       if (!alive) return
       if (members.error || tasks.error) { setCloudError(members.error?.message || tasks.error?.message || 'No se ha podido cargar la organización'); return }
-      setOrgMembers(members.data || [])
-      setOrgTasks(tasks.data || [])
+      let companyMembers = members.data || []
+      const metadata = authSession.user.user_metadata || {}
+      const hasEmployeeData = Boolean(metadata.full_name && metadata.department && metadata.position)
+      const ownProfile = companyMembers.find((member:any) => member.user_id === userId)
+      if (!guest && !ownProfile && hasEmployeeData) {
+        const {data:newMember,error:createError} = await client.from('organization_members').insert({
+          user_id:userId, full_name:String(metadata.full_name).trim(), email:authSession.user.email || null,
+          department:metadata.department, position:String(metadata.position).trim(), status:'Disponible'
+        }).select().single()
+        if (createError) { setCloudError(createError.message); return }
+        companyMembers = [...companyMembers,newMember]
+      }
+      if (alive) {
+        setOrgMembers(companyMembers)
+        setOrgTasks(tasks.data || [])
+      }
     }).catch(error => { if(alive) setCloudError(error instanceof Error ? error.message : 'No se ha podido cargar la organización') })
       .finally(() => { if(alive) setOrgLoading(false) })
     return () => { alive = false }
