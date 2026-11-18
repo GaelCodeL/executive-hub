@@ -278,15 +278,14 @@ function App() {
   const results = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('es')
     if (!q) return []
-    const pages = nav.filter(x => x.label.toLocaleLowerCase('es').includes(q)).map(x => ({label:x.label,detail:'Sección de EXECUTIVE HUB',go:x.label}))
-    const records = [
-      ...tasks.filter(x => (x.title + ' ' + x.project + ' ' + x.description).toLocaleLowerCase('es').includes(q)).map(x => ({ label: x.title, detail: 'Tarea', go: 'Tareas' })),
-      ...events.filter(x => (x.title + ' ' + x.location).toLocaleLowerCase('es').includes(q)).map(x => ({ label: x.title, detail: 'Evento · Agenda', go: 'Agenda' })),
-      ...store.meetings.filter(x => (x.title + ' ' + x.attendees).toLocaleLowerCase('es').includes(q)).map(x => ({ label: x.title, detail: 'Reunión', go: 'Reuniones' })),
-      ...store.notes.filter(x => (x.title + ' ' + x.content).toLocaleLowerCase('es').includes(q)).map(x => ({ label: x.title, detail: 'Nota', go: 'Notas' })),
+    const sections = [
+      ...nav,
+      { label: 'Preferencias', icon: Settings2 },
     ]
-    return [...pages,...records].slice(0,12)
-  }, [query, tasks, events, store.meetings, store.notes])
+    return sections
+      .filter(section => section.label.toLocaleLowerCase('es').includes(q))
+      .map(section => ({ label: section.label, detail: 'Sección de EXECUTIVE HUB', go: section.label }))
+  }, [query])
   const openTaskEditor = (task?: Task) => { setEditingTaskId(task?.id || null); setTaskDraft(task ? { title: task.title, description: task.description, project: task.project, dueDate: dateInput(task.dueAt), dueTime: timeInput(task.dueAt), priority: task.priority } : blankTask()); setTaskForm(true) }
   const addTask = () => {
     if (!taskDraft.title.trim()) return
@@ -426,7 +425,7 @@ function App() {
           <div className="module-title"><div><div className="eyebrow">EXECUTIVE INTELLIGENCE</div><h1>Asistente ejecutivo</h1><p>Un modelo de IA real con contexto de tu workspace.</p></div><span className="assistant-status"><i/> {authSession || guestMode ? 'GEMINI DISPONIBLE' : 'REQUIERE CUENTA'}</span></div>
           <div className="assistant-hero panel"><div className="assistant-hero-icon"><Sparkles size={22}/></div><div><span className="eyebrow">EXECUTIVE COPILOT · GOOGLE GEMINI</span><h2>Un copiloto que razona contigo.</h2><p>Pregunta libremente, analiza tus datos, prepara reuniones y redacta comunicaciones con contexto real.</p></div></div>
           {!isSupabaseConfigured || !supabase ? <div className="panel assistant-auth"><strong>Conexión pendiente</strong><p>La configuración segura de Supabase todavía no está disponible.</p></div> : <div className="assistant-workspace"><div className="panel assistant-chat">
-            <div className="assistant-chat-head"><div><strong>Conversación con EXECUTIVE COPILOT</strong><span>Google Gemini · Gemini 2.5 Flash · contexto de tu workspace</span></div></div>
+            <div className="assistant-chat-head"><div><strong>Conversación con EXECUTIVE COPILOT</strong><span>Google Gemini · Gemini 3.8 Flash · contexto de tu workspace</span></div></div>
             <div className="assistant-suggestions">
               <button onClick={()=>submitAssistantQuestion('Prepara mi briefing ejecutivo de hoy.')}>✦ Briefing ejecutivo</button>
               <button onClick={()=>submitAssistantQuestion('Analiza mis prioridades y dime qué debería resolver primero.')}>Prioridades</button>
